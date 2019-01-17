@@ -20,9 +20,6 @@ for i in range(size[0] // label_x):
 
 Okno.update_display()
 pw.pygame.event.get()
-print("cus")
-
-print()
 while True:
     Okno.handle_events(*[e for e in pw.pygame.event.get() if e != VIDEORESIZE])
     Okno.update_display()
