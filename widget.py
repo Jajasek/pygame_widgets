@@ -1,6 +1,6 @@
 import pygame as pg
-from pygame.locals import *
-from constants_private import *
+from constants.private import *
+from constants.public import *
 
 
 class Master:
@@ -203,7 +203,7 @@ class Window(Master):
         self.surf_args = (flags | SRCALPHA, depth)
         self.surface = pg.display.set_mode(resolution, *self.surf_args)
         self.my_surf = pg.Surface(resolution)
-        self.my_surf.convert()
+        self.my_surf.convert_alpha()
         self.to_update = list()
         self.pub_arg_dict['Window_'] = ['fps']
         self.fps = DEFAULT_FPS
@@ -267,6 +267,7 @@ class Window(Master):
         """Used to change part of window background.
         Public."""
 
+        surf.convert_alpha()
         self.my_surf.blit(surf, dest)
         self.blit()
         # self.surface.blit(self.my_surf, (0, 0))

@@ -1,7 +1,7 @@
 import pygame_widgets.widget as W
 import pygame as pg
-from pygame.locals import *
-from constants_private import *
+from constants.private import *
+from constants.public import *
 pg.font.init()
 
 
