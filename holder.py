@@ -108,8 +108,8 @@ class Holder(W.Widget):
 
     def generate_surf(self):
         self.my_surf = pg.Surface(self.surface.get_size())
-        self.my_surf.fill([0, 255, 0, 0])
-        # self.my_surf.set_colorkey([0, 255, 0])
+        self.my_surf.fill([0, 255, 0])
+        self.my_surf.set_colorkey([0, 255, 0])
         self.my_surf.convert_alpha()
 
     def create_row_layout(self, *widgets, vertical=True, size=(0, 0),

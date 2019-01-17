@@ -39,24 +39,27 @@ class Master:
         except (ValueError, IndexError):
             pass
 
-    def add_handler(self, event_type, func, arglist=None, self_arg=True, event_arg=True, call_if_handled_by_children=False):
+    def add_handler(self, event_type, func, args=None, kwargs=None, self_arg=True, event_arg=True,
+                    call_if_handled_by_children=False):
         """Adds handling function"""
 
-        if arglist is None:
-            arglist = list()
+        if args is None:
+            args = list()
+        if kwargs is None:
+            kwargs = dict()
         if len(self.handlers) <= event_type:
             self.handlers += [list() for _ in range(1 + event_type - len(self.handlers))]
-        self.handlers[event_type].append((func, arglist, self_arg, event_arg, call_if_handled_by_children))
+        self.handlers[event_type].append((func, args, kwargs, self_arg, event_arg, call_if_handled_by_children))
 
-    def remove_handler(self, event_type, func, arglist=None, include_event_arg=True):
-        if arglist is None:
-            arglist = list()
+    def remove_handler(self, event_type, func, args=None, kwargs=None, self_arg=True, event_arg=True):
+        if args is None:
+            args = list()
+        if kwargs is None:
+            kwargs = dict()
         to_del = []
         for handler in self.handlers[event_type]:
-            if handler[:3] == (func, arglist, include_event_arg):
-                to_del.append(handler)
-        for d in to_del:
-            self.handlers.remove(d)
+            if handler[:5] == (func, args, kwargs, self_arg, event_arg):
+                self.handlers[event_type].remove(handler)
 
     def add_nr_events(self, *args):
         for e in args:
@@ -81,9 +84,8 @@ class Master:
                 pass
 
     def handle_events(self, *events):
-        """Function for handling events if possible. For every event, if succesfully handled, returns list of tuples
-        (widget, handler), otherwise empty list. Should be called in Window's instance for every event in event queue,
-        especially for pygame.VIDEORESIZE.
+        """Function for handling events if possible. For every event, if succesfully handled, returns True, otherwise False.
+        Should be called in Window's instance for every event in event queue, especially for pygame.VIDEORESIZE.
         Public."""
 
         output = [False] * len(events)
@@ -109,14 +111,14 @@ class Master:
 
             if handler_exists:
                 for handler in self.handlers[e.type]:
-                    if handler[3] or not output[index]:
+                    if handler[5] or not output[index]:
                         args = list()
-                        if handler[2]:
-                            args.append(self)
                         if handler[3]:
+                            args.append(self)
+                        if handler[4]:
                             args.append(e)
                         args += handler[1]
-                        handler[0](*args)
+                        handler[0](*args, **handler[2])
         return output
 
     def kwarg_list(self):
@@ -195,7 +197,7 @@ class Window(Master):
     def __init__(self, resolution=(0, 0), flags=0, depth=0, min_size=(None, None), max_size=(None, None), **kwargs):
         super().__init__()
         self.add_handler(VIDEORESIZE, self.resize, self_arg=False, call_if_handled_by_children=True)
-        self.add_handler(QUIT, self.quit, self_arg=False, event_arg=False)
+        self.add_handler(QUIT, self.quit, self_arg=False, event_arg=False, call_if_handled_by_children=True)
         self.add_handler(KEYDOWN, self.AltF4, self_arg=False, call_if_handled_by_children=True)
         self.min_size = min_size
         self.max_size = max_size
