@@ -41,10 +41,10 @@ Okno.children.reverse()
 H_0.children.reverse()
 
 L_1_0.add_handler(KEYDOWN, Pripojeni)
-L_1_0.add_handler(MOUSEMOTION, Pohyb, [1, 'rel'])
+L_1_0.add_handler(MOUSEMOTION, Pohyb, *Args(MOTION_MIDDLE, 'rel'))
 L_1_1.add_handler(KEYDOWN, lambda self, event: self.set(visible=not self.visible) if event.key == K_v else None)
-L_1_1.add_handler(MOUSEBUTTONDOWN, Pohyb, [1, 'abs'])
-L_1_1.add_handler(MOUSEMOTION, Pohyb, [0, 'abs'])
+L_1_1.add_handler(MOUSEBUTTONDOWN, Pohyb, *Args(BUTTON_LEFT, 'abs'))
+L_1_1.add_handler(MOUSEMOTION, Pohyb, *Args(MOTION_LEFT, 'abs'))
 
 
 while True:
