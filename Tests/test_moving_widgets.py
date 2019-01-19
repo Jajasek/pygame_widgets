@@ -21,11 +21,9 @@ LabelHelp = text.Label(okno, (0, 50), auto_res=True, text='T, C: font; Esc, Ente
                                                           'Arrows: font size; else: visibility')
 Running = True
 pygame.display.flip()
-clock = pygame.time.Clock()
 
 while Running:
-    clock.tick(25)
-    pygame.display.update(okno.to_update)
+    okno.update_display()
     for event in pygame.event.get():
         okno.handle_events(event)
         if event.type == MOUSEMOTION:

@@ -46,7 +46,7 @@ L_1_1.add_handler(KEYDOWN, lambda self, event: self.set(visible=not self.visible
 L_1_1.add_handler(MOUSEBUTTONDOWN, Pohyb, *Args(BUTTON_LEFT, 'abs'))
 L_1_1.add_handler(MOUSEMOTION, Pohyb, *Args(MOTION_LEFT, 'abs'))
 
-
+i = 0
 while True:
     events = pw.pygame.event.get()
     Okno.handle_events(*events)
@@ -55,3 +55,6 @@ while True:
             if e.key == K_c and (e.mod & KMOD_LCTRL):
                 L_1_0.reconnect()
     Okno.update_display()
+    if i == 50:
+        Okno.set(min_size=(None, 700))
+    i += 1

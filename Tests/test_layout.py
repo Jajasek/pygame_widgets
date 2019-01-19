@@ -8,7 +8,6 @@ size = Okno.surface.get_size()
 surf = pw.pygame.Surface(size)
 surf.fill(pw.THECOLORS['red2'])
 Okno.change_surface(surf)
-pw.pygame.display.flip()
 PomocnyWidget = pw.Holder(Okno, size=Okno.surface.get_size())
 for i in range(size[0] // label_x):
     labels = list()
@@ -18,8 +17,6 @@ for i in range(size[0] // label_x):
     PomocnyWidget.create_row_layout(*labels, vertical=False, size=(0, size[1]), relative_position=(
         (int(i*(size[0] / (size[0] // label_x))), "left", None, "left"), (0, "top", None, "top")))
 
-Okno.update_display()
-pw.pygame.event.get()
 while True:
-    Okno.handle_events(*[e for e in pw.pygame.event.get() if e != VIDEORESIZE])
+    Okno.handle_events(*[e for e in pw.pygame.event.get() if e.type != VIDEORESIZE])
     Okno.update_display()

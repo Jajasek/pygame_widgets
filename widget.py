@@ -194,24 +194,24 @@ class Master:
 class Window(Master):
     """The main master. Causes problems if instanced multiple times."""
 
-    def __init__(self, resolution=(0, 0), flags=0, depth=0, min_size=(None, None), max_size=(None, None), **kwargs):
+    def __init__(self, resolution=(0, 0), flags=0, depth=0, **kwargs):
         super().__init__()
         self.add_handler(VIDEORESIZE, self.resize, self_arg=False, call_if_handled_by_children=True)
         self.add_handler(QUIT, self.quit, self_arg=False, event_arg=False, call_if_handled_by_children=True)
         self.add_handler(KEYDOWN, self.AltF4, self_arg=False, call_if_handled_by_children=True)
-        self.min_size = min_size
-        self.max_size = max_size
-        resolution = self.repair_size(resolution)
+        self.min_size = (None, None)
+        self.max_size = (None, None)
         self.surf_args = (flags | SRCALPHA, depth)
         self.surface = pg.display.set_mode(resolution, *self.surf_args)
-        self.my_surf = pg.Surface(resolution)
+        self.my_surf = pg.Surface(self.surface.get_size())
         self.my_surf.convert_alpha()
         self.to_update = list()
-        self.pub_arg_dict['Window_'] = ['fps']
+        self.pub_arg_dict['Window_attr'] = ['fps']
+        self.pub_arg_dict['Window_resize'] = ['min_size', 'max_size']
         self.fps = DEFAULT_FPS
         self.clock = pg.time.Clock()
 
-        self.set()
+        self.set(**kwargs)
 
     @staticmethod
     def quit(code=0):
@@ -235,14 +235,14 @@ class Window(Master):
         """Default handler for Pygame.VIDEORESIZE event.
         Private."""
 
-        size = self.repair_size(event.size)
-        self.surface = pg.display.set_mode(size, *self.surf_args)
-        self.my_surf = pg.Surface(size)
-        for child in self.children:
-            child.reconnect()
-            child.generate_surf()
-        self.blit(self.surface.get_rect())
-        self.add_update(self.surface.get_rect())
+        if event.size != self.surface.get_size() or self.repair_size(event.size) != self.surface.get_size():
+            self.surface = pg.display.set_mode(self.repair_size(event.size), *self.surf_args)
+            self.my_surf = pg.Surface(self.surface.get_size())
+            for child in self.children:
+                child.reconnect()
+                child.generate_surf()
+            self.blit(self.surface.get_rect())
+            self.add_update(self.surface.get_rect())
 
     def repair_size(self, size):
         """Change the size so that it is in defined limits.
@@ -285,13 +285,20 @@ class Window(Master):
         for name, value in kwargs.items():
             if name in self.kwarg_list():
                 setattr(self, name, value)
-        self.actualise_settings(**kwargs)
+        self.set_update(**kwargs)
 
-    def actualise_settings(self, **kwargs):
+    def set_update(self, **kwargs):
         """Actualises its image on the screen after setting new values to attributes in most efficient way.
         Private."""
 
-        pass
+        if kwargs:
+            mode = False
+            for name in kwargs.keys():
+                if name in self.pub_arg_dict['Window_resize']:
+                    mode = True
+            if mode:
+                res = self.surface.get_size()
+                pg.event.post(pg.event.Event(VIDEORESIZE, size=res, w=res[0], h=res[1]))
 
 
 class Widget(Master):
