@@ -208,6 +208,7 @@ class Window(Master):
         self.to_update = list()
         self.pub_arg_dict['Window_attr'] = ['fps']
         self.pub_arg_dict['Window_resize'] = ['min_size', 'max_size']
+        self.pub_arg_dict['special'] = ['title', 'icon_title', 'icon']
         self.fps = DEFAULT_FPS
         self.clock = pg.time.Clock()
 
@@ -284,7 +285,10 @@ class Window(Master):
 
         for name, value in kwargs.items():
             if name in self.kwarg_list():
-                setattr(self, name, value)
+                if name in self.pub_arg_dict['special']:
+                    self.set_special(name, value)
+                else:
+                    setattr(self, name, value)
         self.set_update(**kwargs)
 
     def set_update(self, **kwargs):
@@ -292,13 +296,21 @@ class Window(Master):
         Private."""
 
         if kwargs:
-            mode = False
+            res = False
             for name in kwargs.keys():
                 if name in self.pub_arg_dict['Window_resize']:
-                    mode = True
-            if mode:
+                    res = True
+            if res:
                 res = self.surface.get_size()
                 pg.event.post(pg.event.Event(VIDEORESIZE, size=res, w=res[0], h=res[1]))
+
+    def set_special(self, name, value):
+        if name == 'title':
+            pg.display.set_caption(value)
+        elif name == 'icontitle':
+            pg.display.set_caption(pg.display.get_caption()[0], value)
+        elif name == 'icon':
+            pg.display.set_icon(value)
 
 
 class Widget(Master):
@@ -307,7 +319,7 @@ class Widget(Master):
 
     def __init__(self, master, rect, **kwargs):
         super().__init__()
-        self.pub_arg_dict["Widget_"] = ["auto_res"]
+        self.pub_arg_dict["Widget_attr"] = ["auto_res"]
         self.pub_arg_dict["special"] = ["visible"]
         self.master = master
         self.auto_res = False
@@ -438,13 +450,6 @@ class Widget(Master):
                     self.set_special(name, value)
                 else:
                     setattr(self, name, value)
-                visible = self.visible
-                setattr(self, name, value)
-                if name == "visible" and value != visible:
-                    if value:
-                        self.master.blit(self.master_rect)
-                    else:
-                        self.disappear()
         self.set_update(**kwargs)
 
     def set_update(self, **kwargs):
