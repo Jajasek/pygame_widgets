@@ -324,15 +324,20 @@ class Widget(Master):
         self.master = master
         self.auto_res = False
         self.visible = True
+        self.connected = True
+        rect = Rect((0, 0), self.master.my_surf.get_size()).clip(rect)
+        if rect.size != (0, 0):
+            self.surface = master.surface.subsurface(rect)
+        # TODO: Add TopLeft attribute and other stuff to enable scrolling
 
-        try:
+        """try:
             self.surface = master.surface.subsurface(rect)
         except ValueError:
             self.surface = pg.Surface(rect.size)
             self.connected = False
         else:
             self.connected = True
-            self.master.children.append(self)
+            self.master.children.append(self)"""
         self.master_rect = rect
         self.my_surf = pg.Surface(rect.size)
         self.safe_init(**kwargs)
