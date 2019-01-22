@@ -13,11 +13,18 @@ class Master:
         self.user_attr = dict()
         self.surface = None
         self.my_surf = None
+        self.topleft = (0, 0)
+        self.master_rect = Rect(0, 0, 1, 1)
         self.grab = list()  # [event_type: [Child, ...]]
         self.handlers = list()  # [event_type: [(func, [arg1, ...], include_event_arg, /
         #                                       call_if_handled_by_children), ...]]
         self.non_receive_events = set()
         self.non_send_events = set()
+
+    def on_screen(self, rect=None):
+        if not rect:
+            rect = self.get_abs_master_rect()
+        return pg.display.get_surface().get_rect().colliderect(rect)
 
     def add_grab(self, event_type, child):
         """Child grabs every event of specified type.
@@ -137,16 +144,16 @@ class Master:
         """Returns values of requested user defined attributes. If not defined, returns None.
         Public."""
 
-        Values = [None] * len(args)
+        values = [None] * len(args)
         for index, attr in enumerate(args):
             try:
-                Values[index] = self.user_attr[attr]
+                values[index] = self.user_attr[attr]
             except KeyError:
                 pass
-        return Values
+        return values if len(values) > 1 else values[0]
 
     def del_u(self, *args):
-        """Deletes some of user defined attributes.
+        """Deletes specified user defined attributes.
         Public."""
 
         for attr in args:
@@ -161,29 +168,31 @@ class Master:
         Can be called by master or child.
         Private."""
 
-        if not self.visible:
+        if not self.visible or not self.on_screen():
             return
         if rect is None:
             rect = self.surface.get_rect()
         else:
             rect = rect.clip(self.surface.get_rect())
-        OldClip = self.surface.get_clip()
+        old_clip = self.surface.get_clip()
         self.surface.set_clip(rect)
-        self.surface.blit(self.my_surf, (0, 0))
-        self.surface.set_clip(OldClip)
+        self.surface.blit(self.my_surf, self.topleft)
+        self.surface.set_clip(old_clip)
         self.add_update(rect.move(*self.surface.get_abs_offset()))
         for child in self.children:
             if child.master_rect.colliderect(rect):
-                child.blit(rect.move(*[-a for a in child.surface.get_offset()]))
+                child.blit(rect.move(*[-a for a in child.master_rect.topleft]))
 
     def redraw_child_reccurent(self, abs_clip, path):
         """Reccurent function used to disappear widget.
-        Is called by child.
+        Is called by child or master.
         Private."""
 
-        clip = abs_clip.move(*[-a for a in self.surface.get_offset()]) if isinstance(self, Widget) else abs_clip
+        clip = abs_clip.move(*[-a for a in self.get_abs_master_rect().topleft])
+        old_clip = self.surface.get_clip()
         self.surface.set_clip(clip)
         self.surface.blit(self.my_surf, (0, 0))
+        self.surface.set_clip(old_clip)
         for child in self.children:
             if child.master_rect.colliderect(clip) and child != path[0]:
                 child.blit(clip.move(*[-a for a in child.surface.get_offset()]))
@@ -261,10 +270,13 @@ class Window(Master):
         """Adds update rect to the to_update list.
         Public."""
 
-        if self.surface.get_rect().colliderect(rect):
+        if self.on_screen(rect):
             self.to_update.append(self.surface.get_rect().clip(rect))
             return True
         return False
+
+    def get_abs_master_rect(self):
+        return self.surface.get_rect()
 
     def change_surface(self, surf, dest=(0, 0)):
         """Used to change part of window background.
@@ -305,6 +317,9 @@ class Window(Master):
                 pg.event.post(pg.event.Event(VIDEORESIZE, size=res, w=res[0], h=res[1]))
 
     def set_special(self, name, value):
+        """Manages settings that require some special action instead of changing attributes of self.
+        Private."""
+
         if name == 'title':
             pg.display.set_caption(value)
         elif name == 'icontitle':
@@ -325,10 +340,8 @@ class Widget(Master):
         self.auto_res = False
         self.visible = True
         self.connected = True
-        rect = Rect((0, 0), self.master.my_surf.get_size()).clip(rect)
-        if rect.size != (0, 0):
-            self.surface = master.surface.subsurface(rect)
-        # TODO: Add TopLeft attribute and other stuff to enable scrolling
+        self.master_rect = rect
+        self.create_subsurface()
 
         """try:
             self.surface = master.surface.subsurface(rect)
@@ -338,7 +351,6 @@ class Widget(Master):
         else:
             self.connected = True
             self.master.children.append(self)"""
-        self.master_rect = rect
         self.my_surf = pg.Surface(rect.size)
         self.safe_init(**kwargs)
 
@@ -346,7 +358,7 @@ class Widget(Master):
         """Returns the rectangle of used space in absolute master's surface.
         Public."""
 
-        return Rect(self.surface.get_abs_offset(), self.surface.get_size())
+        return self.master_rect.move(*self.master.get_abs_master_rect().topleft)
 
     def get_abs_master_path(self):
         """returns the list of masters sorted from top-level.
@@ -367,7 +379,19 @@ class Widget(Master):
         """Generates new surface of appearance.
         Private."""
 
-        self.my_surf = pg.Surface(self.surface.get_size())
+        self.my_surf = pg.Surface(self.master_rect.size)
+
+    def create_subsurface(self):
+        """Tries to create a subsurface and actualise topleft.
+        Private."""
+
+        rect = self.master.my_surf.get_rect().clip(self.master_rect)
+        if rect.size != (0, 0):
+            self.surface = self.master.surface.subsurface(rect)
+            self.topleft = [rect.topleft[i] - self.master_rect.topleft[i] for i in range(2)]
+        else:
+            self.surface = None
+            self.topleft = (0, 0)
 
     def safe_init(self, **kwargs):
         """Searches for non-generate arg, if not found, generates surface. Useful for distinguishing the initialisation
@@ -391,9 +415,10 @@ class Widget(Master):
         """Method used to redraw widget by other widgets.
         Public."""
 
-        if self.connected:
+        if self.connected and self.on_screen():
             path = self.get_abs_master_path()
-            path[0].redraw_child_reccurent(self.get_abs_master_rect(), path[1:] + [self])
+            path[0].redraw_child_reccurent(self.get_abs_master_rect().clip(pg.display.get_surface().get_rect()),
+                                           path[1:] + [self])
             self.add_update()
 
     def add_update(self, rect=None):
@@ -404,27 +429,28 @@ class Widget(Master):
 
         if not rect:
             rect = self.get_abs_master_rect()
-        if self.get_abs_master_rect().colliderect(rect):
+        if self.get_abs_master_rect().colliderect(rect) and self.on_screen(rect):
             return self.master.add_update(self.get_abs_master_rect().clip(rect))
         return False
 
     def reconnect(self, rect=None, abs_rect=False):
         """Used to actualise the connections of subsurfaces
-        (makes self.surface to be a subsurface of self.master.surface).
+        (makes self.surface to be a subsurface of self.master.surface if possible).
         Can be called by master.
         Public."""
 
         if not rect:
             rect = self.master_rect
         if abs_rect:
-            rect.move_ip(*[-i for i in self.master.surface.get_abs_offset()])
-        try:
+            rect.move_ip(*[-i for i in self.master.get_abs_master_rect().topleft])
+        self.master_rect = rect
+        self.create_subsurface()
+        """try:
             self.surface = self.master.surface.subsurface(rect)
         except ValueError:
-            self.connected = False
-            return False
+            self.surface = None
         self.connected = True
-        self.master_rect = rect
+        self.master_rect = rect"""
         if self not in self.master.children:
             self.master.children.append(self)
         self.appear()
@@ -441,6 +467,7 @@ class Widget(Master):
         self.disappear()
         self.master.children.remove(self)
         self.surface = self.my_surf.copy()
+        self.topleft = (0, 0)
         self.connected = False
         for child in self.children:
             child.reconnect()
@@ -482,6 +509,7 @@ class Widget(Master):
         """Moves its subsurface inside master's surface to the given position and resizes it.
         move_level is an integer or one of strings 'abs' and 'rel'.
         Public."""
+        # FIXME: Fix the move_resize mehod of Widget to work well with the fixed
 
         if resize_rel:
             resize = [resize[i] * self.surface.get_size()[i] for i in range(2)]
