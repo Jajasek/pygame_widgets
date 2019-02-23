@@ -107,7 +107,7 @@ class Holder(W.Widget):
         self.safe_init(**kwargs)
 
     def generate_surf(self):
-        self.my_surf = pg.Surface(self.surface.get_size(), SRCALPHA)
+        self.my_surf = pg.Surface(self.master_rect.size, SRCALPHA)
         self.my_surf.fill([0, 255, 0, 0])
         self.my_surf.convert_alpha()
 

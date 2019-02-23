@@ -63,7 +63,6 @@ class Master:
             args = list()
         if kwargs is None:
             kwargs = dict()
-        to_del = []
         for handler in self.handlers[event_type]:
             if handler[:5] == (func, args, kwargs, self_arg, event_arg):
                 self.handlers[event_type].remove(handler)
@@ -174,6 +173,8 @@ class Master:
             rect = self.surface.get_rect()
         else:
             rect = rect.clip(self.surface.get_rect())
+            if not rect:
+                return
         old_clip = self.surface.get_clip()
         self.surface.set_clip(rect)
         self.surface.blit(self.my_surf, self.topleft)
@@ -406,14 +407,15 @@ class Widget(Master):
         self.appear()
 
     def appear(self):
-        """Method used to draw widget properly."""
+        """Method used to draw widget on the screen properly.
+        Public."""
 
-        if self.connected:
+        if self.connected and self.on_screen():
             self.get_abs_master_path()[0].blit(self.get_abs_master_rect())
 
     def disappear(self):
-        """Method used to redraw widget by other widgets.
-        Public."""
+        """Method used to redraw widget by other widgets. It could cause problems if not used carefully.
+        Private."""
 
         if self.connected and self.on_screen():
             path = self.get_abs_master_path()
@@ -454,13 +456,12 @@ class Widget(Master):
         if self not in self.master.children:
             self.master.children.append(self)
         self.appear()
-        output = [True] + ([None] * len(self.children))
-        for index, child in enumerate(self.children):
-            output[index + 1] = child.reconnect()
-        return output
+        for child in self.children:
+            child.reconnect()
 
     def disconnect(self):
-        """Disconnets its surface from master's surface and redraws itself."""
+        """Disconnets its surface from master's surface and redraws itself. It will not receive events
+        Public."""
 
         if not self.connected:
             return
@@ -505,36 +506,34 @@ class Widget(Master):
             else:
                 self.disappear()
 
-    def move_resize(self, move=(0, 0), move_level='rel', resize=(1, 1), resize_rel=True, update_surf=True):
+    def move_resize(self, move=(0, 0), move_level: int = 'rel', resize=(1, 1), resize_rel=True, update_surf=True):
         """Moves its subsurface inside master's surface to the given position and resizes it.
         move_level is an integer or one of strings 'abs' and 'rel'.
         Public."""
-        # FIXME: Fix the move_resize mehod of Widget to work well with the fixed
+        # FIXME: Fix the move_resize method of Widget to work well with the fixed
 
+        size = self.my_surf.get_size()
         if resize_rel:
-            resize = [resize[i] * self.surface.get_size()[i] for i in range(2)]
-
-        size = self.surface.get_size()
+            resize = [resize[i] * size[i] for i in range(2)]
 
         if self.connected:
             if move_level == 'rel':
-                move = [move[i] + self.surface.get_offset()[i] for i in range(2)]
+                move = [move[i] + self.master_rect.topleft[i] for i in range(2)]
             elif move_level == 'abs':
-                move = [self.surface.get_offset()[i] + (move[i] - self.surface.get_abs_offset()[i]) for i in range(2)]
+                move = [move[i] - self.master.get_abs_master_rect().topleft[i] for i in range(2)]
             else:
                 master = self.master
                 for _ in range(move_level):
-                    move = [move[i] - master.surface.get_offset()[i] for i in range(2)]
+                    move = [move[i] - master.master_rect.topleft[i] for i in range(2)]
                     try:
                         master = master.master
                     except AttributeError:
                         break
             rect = Rect(move, resize)
-            if not self.master.surface.get_rect().contains(rect):
-                return False
+            # Here is problem
             self.disappear()
-            self.surface = self.master.surface.subsurface(rect)
             self.master_rect = rect
+            self.create_subsurface()
         else:
             if move_level == 'rel':
                 self.master_rect.move_ip(*move)
@@ -544,10 +543,6 @@ class Widget(Master):
             self.surface = pg.Surface(resize)
         if update_surf:
             self.generate_surf()
-        output = [True] + ([None] * len(self.children))
-        for index, child in enumerate(self.children):
-            output[index + 1] = child.reconnect()
-            if size != resize:
-                child.generate_surf()
+        for child in self.children:
+            child.reconnect()
         self.appear()
-        return output

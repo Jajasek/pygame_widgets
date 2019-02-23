@@ -74,7 +74,6 @@ class Label(Text):
         updated[SUPER] = True
         super().__init__(master, Rect(topleft, size), **updated)
         self.new_font()
-        self.master.blit(self.master_rect)
         self.safe_init(**kwargs)
 
     def generate_surf(self):
