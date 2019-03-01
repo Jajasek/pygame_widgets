@@ -77,6 +77,7 @@ class Label(Text):
         self.safe_init(**kwargs)
 
     def generate_surf(self):
+        # FIXME: The alignment doesn't work
         text = self.font.render(self.text, self.smooth, self.font_color, self.bg_color)
         if self.auto_res:
             if self.connected:

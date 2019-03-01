@@ -4,12 +4,14 @@ from public import *
 
 def zmena_okna(self):
     global size
-    size = Okno.surface.get_size()
+    size = self.surface.get_size()
+    print(f'zmena_okna: {size}')
     self.my_surf = pw.pygame.Surface(size, SRCALPHA)
-    color = self.get_u('bg_color')[0]
+    color = self.get_u('bg_color')
+    print(color)
     self.my_surf.fill(color)
     self.my_surf.convert()
-    self.blit(self.surface.get_rect())
+    self.blit()
     self.add_update(self.surface.get_rect())
 
 
@@ -29,18 +31,23 @@ def Pohyb(self, event, btn, rel):
 
 size = (700, 500)
 Okno = pw.Window(size, RESIZABLE, min_size=(350, 250), max_size=(1920, 1080))
-Okno.set_u(bg_color=THECOLORS['gray40'])
+Okno.set_u(bg_color=THECOLORS['gray42'])
 Okno.add_handler(VIDEORESIZE, zmena_okna, self_arg=True, event_arg=False, call_if_handled_by_children=True)
 Okno.update_display()
 L_0 = pw.Label(Okno, auto_res=True, text='napoveda: ', font_color=THECOLORS['yellow3'], bg_color=THECOLORS['black'])
+print('L_0:', L_0.connected)
 Okno.update_display()
-H_0 = pw.Holder(Okno, topleft=(100, 100), size=(400, 200))
+H_0 = pw.Holder(Okno, topleft=(-100, 100), size=(400, 200), color=THECOLORS['yellowgreen'])
+print('H_0:', H_0.connected)
 Okno.update_display()
-L_1_0 = pw.Label(H_0, size=(190, 50), text='Label_1_0', bg_color=THECOLORS['wheat1'], font_color=THECOLORS['black'],
-                 font_size=30, alignment_x=2, alignment_y=0)
+"""L_1_0 = pw.Label(H_0, size=(190, 50), text='Label_1_0', bg_color=THECOLORS['wheat1'], font_color=THECOLORS['black'],
+                 font_size=30, alignment_x=2, alignment_y=0)"""
+L_1_0 = pw.Holder(H_0, size=(190, 50), color=THECOLORS['yellow1'])
+print('L_1_0:', L_1_0.connected)
 Okno.update_display()
 L_1_1 = pw.Label(H_0, topleft=(0, 60), text='Label_1_1', auto_res=True, bold=True, underlined=True, italic=True,
                  font_size=25)
+print('L_1_1:', L_1_1.connected)
 Okno.update_display()
 Okno.children.reverse()
 H_0.children.reverse()
@@ -50,10 +57,14 @@ L_1_0.add_handler(MOUSEMOTION, Pohyb, *Args(MOTION_MIDDLE, 'rel'))
 L_1_1.add_handler(KEYDOWN, lambda self, event: self.set(visible=not self.visible) if event.key == K_v else None)
 L_1_1.add_handler(MOUSEBUTTONDOWN, Pohyb, *Args(BUTTON_LEFT, 'abs'))
 L_1_1.add_handler(MOUSEMOTION, Pohyb, *Args(MOTION_LEFT, 'abs'))
+H_0.add_handler(MOUSEMOTION, Pohyb, *Args(MOTION_RIGHT, 'rel'))
 
 i = 0
 while True:
     events = pw.pygame.event.get()
+    if events:
+        pass
+        # print(*events, sep='\n')
     Okno.handle_events(*events)
     for e in events:
         if e.type == KEYDOWN:

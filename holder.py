@@ -103,12 +103,14 @@ class Holder(W.Widget):
         updated = kwargs.copy()
         updated[SUPER] = True
         super().__init__(master, Rect(topleft, size), **updated)
+        self.pub_arg_dict['Holder_attr'] = ['color']
         self.layouts = list()
+        self.color = [0, 255, 0, 0]
         self.safe_init(**kwargs)
 
     def generate_surf(self):
         self.my_surf = pg.Surface(self.master_rect.size, SRCALPHA)
-        self.my_surf.fill([0, 255, 0, 0])
+        self.my_surf.fill(self.color)
         self.my_surf.convert_alpha()
 
     def create_row_layout(self, *widgets, vertical=True, size=(0, 0),

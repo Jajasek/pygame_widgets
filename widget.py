@@ -9,6 +9,7 @@ class Master:
     def __init__(self):
         self.children = list()
         self.pub_arg_dict = dict()
+        self.pub_arg_dict['special'] = []
         self.visible = True
         self.user_attr = dict()
         self.surface = None
@@ -182,7 +183,7 @@ class Master:
         self.add_update(rect.move(*self.surface.get_abs_offset()))
         for child in self.children:
             if child.master_rect.colliderect(rect):
-                child.blit(rect.move(*[-a for a in child.master_rect.topleft]))
+                child.blit(rect.move(*[child.topleft[i] - child.master_rect.topleft[i] for i in range(2)]))
 
     def redraw_child_reccurent(self, abs_clip, path):
         """Reccurent function used to disappear widget.
@@ -218,7 +219,7 @@ class Window(Master):
         self.to_update = list()
         self.pub_arg_dict['Window_attr'] = ['fps']
         self.pub_arg_dict['Window_resize'] = ['min_size', 'max_size']
-        self.pub_arg_dict['special'] = ['title', 'icon_title', 'icon']
+        self.pub_arg_dict['special'].extend(['title', 'icon_title', 'icon'])
         self.fps = DEFAULT_FPS
         self.clock = pg.time.Clock()
 
@@ -336,13 +337,14 @@ class Widget(Master):
     def __init__(self, master, rect, **kwargs):
         super().__init__()
         self.pub_arg_dict["Widget_attr"] = ["auto_res"]
-        self.pub_arg_dict["special"] = ["visible"]
+        self.pub_arg_dict["special"].extend(["visible"])
         self.master = master
         self.auto_res = False
         self.visible = True
         self.connected = True
         self.master_rect = rect
         self.create_subsurface()
+        self.master.children.append(self)
 
         """try:
             self.surface = master.surface.subsurface(rect)
@@ -386,10 +388,11 @@ class Widget(Master):
         """Tries to create a subsurface and actualise topleft.
         Private."""
 
-        rect = self.master.my_surf.get_rect().clip(self.master_rect)
+        rect = self.master.surface.get_rect().clip(self.master_rect.move(*[self.master.topleft[i] for i in range(2)]))
+        print(rect)
         if rect.size != (0, 0):
             self.surface = self.master.surface.subsurface(rect)
-            self.topleft = [rect.topleft[i] - self.master_rect.topleft[i] for i in range(2)]
+            self.topleft = [self.master_rect.topleft[i] - rect.topleft[i] for i in range(2)]
         else:
             self.surface = None
             self.topleft = (0, 0)
@@ -510,7 +513,6 @@ class Widget(Master):
         """Moves its subsurface inside master's surface to the given position and resizes it.
         move_level is an integer or one of strings 'abs' and 'rel'.
         Public."""
-        # FIXME: Fix the move_resize method of Widget to work well with the fixed
 
         size = self.my_surf.get_size()
         if resize_rel:
@@ -530,7 +532,6 @@ class Widget(Master):
                     except AttributeError:
                         break
             rect = Rect(move, resize)
-            # Here is problem
             self.disappear()
             self.master_rect = rect
             self.create_subsurface()
