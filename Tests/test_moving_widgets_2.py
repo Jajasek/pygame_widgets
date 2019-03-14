@@ -7,7 +7,7 @@ def zmena_okna(self):
     size = self.surface.get_size()
     print(f'zmena_okna: {size}')
     self.my_surf = pw.pygame.Surface(size, SRCALPHA)
-    color = self.get_u('bg_color')
+    color = self.attributes.bg_color
     print(color)
     self.my_surf.fill(color)
     self.my_surf.convert()
@@ -31,7 +31,7 @@ def Pohyb(self, event, btn, rel):
 
 size = (700, 500)
 Okno = pw.Window(size, RESIZABLE, min_size=(350, 250), max_size=(1920, 1080))
-Okno.set_u(bg_color=THECOLORS['gray42'])
+Okno.attributes.bg_color = THECOLORS['gray42']
 Okno.add_handler(VIDEORESIZE, zmena_okna, self_arg=True, event_arg=False, call_if_handled_by_children=True)
 Okno.update_display()
 L_0 = pw.Label(Okno, auto_res=True, text='napoveda: ', font_color=THECOLORS['yellow3'], bg_color=THECOLORS['black'])

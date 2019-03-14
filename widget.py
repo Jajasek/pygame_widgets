@@ -1,6 +1,7 @@
 import pygame as pg
-from constants.private import *
-from constants.public import *
+from attributes import Attributes
+from pygame_widgets.constants.private import *
+from pygame_widgets.constants.public import *
 
 
 class Master:
@@ -11,7 +12,7 @@ class Master:
         self.pub_arg_dict = dict()
         self.pub_arg_dict['special'] = []
         self.visible = True
-        self.user_attr = dict()
+        self.attributes = Attributes()
         self.surface = None
         self.my_surf = None
         self.topleft = (0, 0)
@@ -133,34 +134,6 @@ class Master:
         Public."""
 
         return sum(self.pub_arg_dict.values(), [])
-
-    def set_u(self, **kwargs):
-        """Sets user defined attributes.
-        Public."""
-
-        self.user_attr.update(kwargs)
-
-    def get_u(self, *args):
-        """Returns values of requested user defined attributes. If not defined, returns None.
-        Public."""
-
-        values = [None] * len(args)
-        for index, attr in enumerate(args):
-            try:
-                values[index] = self.user_attr[attr]
-            except KeyError:
-                pass
-        return values if len(values) > 1 else values[0]
-
-    def del_u(self, *args):
-        """Deletes specified user defined attributes.
-        Public."""
-
-        for attr in args:
-            try:
-                del self.user_attr[attr]
-            except KeyError:
-                pass
 
     def blit(self, rect=None):
         """Blits the surface of appearance to the master's surface subsurface. If rect, actualises only children
@@ -345,15 +318,6 @@ class Widget(Master):
         self.master_rect = rect
         self.create_subsurface()
         self.master.children.append(self)
-
-        """try:
-            self.surface = master.surface.subsurface(rect)
-        except ValueError:
-            self.surface = pg.Surface(rect.size)
-            self.connected = False
-        else:
-            self.connected = True
-            self.master.children.append(self)"""
         self.my_surf = pg.Surface(rect.size)
         self.safe_init(**kwargs)
 
@@ -389,7 +353,6 @@ class Widget(Master):
         Private."""
 
         rect = self.master.surface.get_rect().clip(self.master_rect.move(*[self.master.topleft[i] for i in range(2)]))
-        print(rect)
         if rect.size != (0, 0):
             self.surface = self.master.surface.subsurface(rect)
             self.topleft = [self.master_rect.topleft[i] - rect.topleft[i] for i in range(2)]

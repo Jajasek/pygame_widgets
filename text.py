@@ -1,7 +1,7 @@
 import pygame_widgets.widget as W
 import pygame as pg
-from constants.private import *
-from constants.public import *
+from pygame_widgets.constants.private import *
+from pygame_widgets.constants.public import *
 pg.font.init()
 
 
@@ -20,7 +20,7 @@ class Text(W.Widget):
         self.italic = False
         self.underlined = False
 
-        self.font_color = (0, 0, 0)
+        self.font_color = THECOLORS['black']
         self.bg_color = None
         self.smooth = True
         self.text = ""

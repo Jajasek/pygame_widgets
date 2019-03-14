@@ -1,7 +1,7 @@
 import pygame_widgets.widget as W
 import pygame as pg
-from constants.private import *
-from constants.public import *
+from pygame_widgets.constants.private import *
+from pygame_widgets.constants.public import *
 
 
 class RowLayout:
@@ -121,3 +121,4 @@ class Holder(W.Widget):
                 w.remove(widget)
         layout = RowLayout(self, vertical, size, relative_position, identical_cells)
         layout.add_widgets(*w)
+        return layout
