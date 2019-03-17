@@ -1,6 +1,6 @@
 import pygame_widgets.widget as W
 import pygame as pg
-from pygame_widgets.constants.private import *
+import pygame_widgets.constants.private as CONST
 from pygame_widgets.constants.public import *
 pg.font.init()
 
@@ -10,7 +10,7 @@ class Text(W.Widget):
 
     def __init__(self, master, rect, **kwargs):
         updated = kwargs.copy()
-        updated[SUPER] = True
+        updated[CONST.SUPER] = True
         super().__init__(master, rect, **updated)
         self.font = None
         self.font_name = "calibri"
@@ -71,7 +71,7 @@ class Label(Text):
 
     def __init__(self, master, topleft=(0, 0), size=(1, 1), **kwargs):
         updated = kwargs.copy()
-        updated[SUPER] = True
+        updated[CONST.SUPER] = True
         super().__init__(master, Rect(topleft, size), **updated)
         self.new_font()
         self.safe_init(**kwargs)

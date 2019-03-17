@@ -42,7 +42,7 @@ print('H_0:', H_0.connected)
 Okno.update_display()
 """L_1_0 = pw.Label(H_0, size=(190, 50), text='Label_1_0', bg_color=THECOLORS['wheat1'], font_color=THECOLORS['black'],
                  font_size=30, alignment_x=2, alignment_y=0)"""
-L_1_0 = pw.Holder(H_0, size=(190, 50), color=THECOLORS['yellow1'])
+L_1_0 = pw.Holder(H_0, topleft=(200, 100), size=(190, 50), color=THECOLORS['yellow1'])
 print('L_1_0:', L_1_0.connected)
 Okno.update_display()
 L_1_1 = pw.Label(H_0, topleft=(0, 60), text='Label_1_1', auto_res=True, bold=True, underlined=True, italic=True,

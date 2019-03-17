@@ -1,6 +1,6 @@
 import pygame as pg
 from attributes import Attributes
-from pygame_widgets.constants.private import *
+import pygame_widgets.constants.private as CONST
 from pygame_widgets.constants.public import *
 
 
@@ -18,10 +18,10 @@ class Master:
         self.topleft = (0, 0)
         self.master_rect = Rect(0, 0, 1, 1)
         self.grab = list()  # [event_type: [Child, ...]]
-        self.handlers = list()  # [event_type: [(func, [arg1, ...], include_event_arg, /
+        self.handlers = dict()  # [event_type: [(func, [arg1, ...], include_event_arg, /
         #                                       call_if_handled_by_children), ...]]
-        self.non_receive_events = set()
-        self.non_send_events = set()
+        self.no_receive_events = set()
+        self.no_send_events = set()
 
     def on_screen(self, rect=None):
         if not rect:
@@ -56,8 +56,8 @@ class Master:
             args = list()
         if kwargs is None:
             kwargs = dict()
-        if len(self.handlers) <= event_type:
-            self.handlers += [list() for _ in range(1 + event_type - len(self.handlers))]
+        if event_type not in self.handlers:
+            self.handlers[event_type] = list()
         self.handlers[event_type].append((func, args, kwargs, self_arg, event_arg, call_if_handled_by_children))
 
     def remove_handler(self, event_type, func, args=None, kwargs=None, self_arg=True, event_arg=True):
@@ -71,23 +71,23 @@ class Master:
 
     def add_nr_events(self, *args):
         for e in args:
-            self.non_receive_events.add(e)
+            self.no_receive_events.add(e)
 
     def remove_nr_events(self, *args):
         for e in args:
             try:
-                self.non_receive_events.remove(e)
+                self.no_receive_events.remove(e)
             except ValueError:
                 pass
 
     def add_ns_events(self, *args):
         for e in args:
-            self.non_send_events.add(e)
+            self.no_send_events.add(e)
 
     def remove_ns_events(self, *args):
         for e in args:
             try:
-                self.non_send_events.remove(e)
+                self.no_send_events.remove(e)
             except ValueError:
                 pass
 
@@ -98,9 +98,9 @@ class Master:
 
         output = [False] * len(events)
         for index, e in enumerate(events):
-            if e.type in self.non_receive_events:
+            if e.type in self.no_receive_events:
                 continue
-            if e.type not in self.non_send_events:
+            if e.type not in self.no_send_events:
                 try:
                     grab_exists = bool(self.grab[e.type])
                 except IndexError:
@@ -114,7 +114,7 @@ class Master:
 
             try:
                 handler_exists = bool(self.handlers[e.type])
-            except IndexError:
+            except KeyError:
                 handler_exists = False
 
             if handler_exists:
@@ -193,7 +193,7 @@ class Window(Master):
         self.pub_arg_dict['Window_attr'] = ['fps']
         self.pub_arg_dict['Window_resize'] = ['min_size', 'max_size']
         self.pub_arg_dict['special'].extend(['title', 'icon_title', 'icon'])
-        self.fps = DEFAULT_FPS
+        self.fps = CONST.DEFAULT_FPS
         self.clock = pg.time.Clock()
 
         self.set(**kwargs)
@@ -365,8 +365,8 @@ class Widget(Master):
         of user-requested instance and initialisation of the super() of it.
         Private."""
 
-        if SUPER in kwargs.keys():
-            if kwargs[SUPER]:
+        if CONST.SUPER in kwargs:
+            if kwargs[CONST.SUPER]:
                 return
         self.set(**kwargs)
         self.generate_surf()
