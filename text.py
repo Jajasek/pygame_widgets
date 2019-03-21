@@ -1,7 +1,7 @@
 import pygame_widgets.widget as W
 import pygame as pg
-from constants.private import *
-from constants.public import *
+import pygame_widgets.constants.private as CONST
+from pygame_widgets.constants.public import *
 pg.font.init()
 
 
@@ -10,7 +10,7 @@ class Text(W.Widget):
 
     def __init__(self, master, rect, **kwargs):
         updated = kwargs.copy()
-        updated[SUPER] = True
+        updated[CONST.SUPER] = True
         super().__init__(master, rect, **updated)
         self.font = None
         self.font_name = "calibri"
@@ -20,7 +20,7 @@ class Text(W.Widget):
         self.italic = False
         self.underlined = False
 
-        self.font_color = (0, 0, 0)
+        self.font_color = THECOLORS['black']
         self.bg_color = None
         self.smooth = True
         self.text = ""
@@ -71,28 +71,20 @@ class Label(Text):
 
     def __init__(self, master, topleft=(0, 0), size=(1, 1), **kwargs):
         updated = kwargs.copy()
-        updated[SUPER] = True
+        updated[CONST.SUPER] = True
         super().__init__(master, Rect(topleft, size), **updated)
         self.new_font()
-        self.master.blit(self.master_rect)
         self.safe_init(**kwargs)
 
     def generate_surf(self):
         text = self.font.render(self.text, self.smooth, self.font_color, self.bg_color)
         if self.auto_res:
-            if self.connected:
-                new_rect = self.master.surface.get_rect().clip(Rect(self.master_rect.topleft, text.get_size()))
-                self.move_resize(resize=new_rect.size, resize_rel=False, update_surf=False)
-            else:
-                self.my_surf = text
-                self.master_rect.size = text.get_size()
-                return
-        if not self.bg_color:
-            self.my_surf = pg.Surface(self.master_rect.size, SRCALPHA)
-            self.my_surf.fill((255, 255, 255, 0))
-        else:
-            self.my_surf = pg.Surface(self.master_rect.size)
-            self.my_surf.fill(self.bg_color)
+            self.my_surf = text
+            self.master_rect.size = text.get_size()
+            self.create_subsurface()
+            return
+        self.my_surf = pg.Surface(self.master_rect.size, SRCALPHA)
+        self.my_surf.fill(self.bg_color if self.bg_color else THECOLORS['transparent'])
         dest = (self.alignment_x * (self.my_surf.get_width() - text.get_width()) / 2,
                 self.alignment_y * (self.my_surf.get_height() - text.get_height()) / 2)
         self.my_surf.blit(text, dest)

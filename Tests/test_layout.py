@@ -1,5 +1,5 @@
 import pygame_widgets as pw
-from pygame.locals import *
+from pygame_widgets.constants.public import *
 
 size = 0, 0
 label_x, label_y = label_size = 220, 180

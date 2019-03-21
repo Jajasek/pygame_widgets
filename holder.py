@@ -1,7 +1,7 @@
 import pygame_widgets.widget as W
 import pygame as pg
-from constants.private import *
-from constants.public import *
+import pygame_widgets.constants.private as CONST
+from pygame_widgets.constants.public import *
 
 
 class RowLayout:
@@ -101,14 +101,16 @@ class Holder(W.Widget):
 
     def __init__(self, master, topleft=(0, 0), size=(1, 1), **kwargs):
         updated = kwargs.copy()
-        updated[SUPER] = True
+        updated[CONST.SUPER] = True
         super().__init__(master, Rect(topleft, size), **updated)
+        self.pub_arg_dict['Holder_attr'] = ['color']
         self.layouts = list()
+        self.color = [0, 255, 0, 0]
         self.safe_init(**kwargs)
 
     def generate_surf(self):
-        self.my_surf = pg.Surface(self.surface.get_size(), SRCALPHA)
-        self.my_surf.fill([0, 255, 0, 0])
+        self.my_surf = pg.Surface(self.master_rect.size, SRCALPHA)
+        self.my_surf.fill(self.color)
         self.my_surf.convert_alpha()
 
     def create_row_layout(self, *widgets, vertical=True, size=(0, 0),
@@ -119,3 +121,4 @@ class Holder(W.Widget):
                 w.remove(widget)
         layout = RowLayout(self, vertical, size, relative_position, identical_cells)
         layout.add_widgets(*w)
+        return layout
