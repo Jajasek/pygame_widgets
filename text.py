@@ -77,22 +77,14 @@ class Label(Text):
         self.safe_init(**kwargs)
 
     def generate_surf(self):
-        # FIXME: The alignment doesn't work
         text = self.font.render(self.text, self.smooth, self.font_color, self.bg_color)
         if self.auto_res:
-            if self.connected:
-                new_rect = self.master.surface.get_rect().clip(Rect(self.master_rect.topleft, text.get_size()))
-                self.move_resize(resize=new_rect.size, resize_rel=False, update_surf=False)
-            else:
-                self.my_surf = text
-                self.master_rect.size = text.get_size()
-                return
-        if not self.bg_color:
-            self.my_surf = pg.Surface(self.master_rect.size, SRCALPHA)
-            self.my_surf.fill((255, 255, 255, 0))
-        else:
-            self.my_surf = pg.Surface(self.master_rect.size)
-            self.my_surf.fill(self.bg_color)
+            self.my_surf = text
+            self.master_rect.size = text.get_size()
+            self.create_subsurface()
+            return
+        self.my_surf = pg.Surface(self.master_rect.size, SRCALPHA)
+        self.my_surf.fill(self.bg_color if self.bg_color else THECOLORS['transparent'])
         dest = (self.alignment_x * (self.my_surf.get_width() - text.get_width()) / 2,
                 self.alignment_y * (self.my_surf.get_height() - text.get_height()) / 2)
         self.my_surf.blit(text, dest)

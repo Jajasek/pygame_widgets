@@ -7,7 +7,11 @@ from pygame_widgets.constants.public import *
 class Master:
     """Class for methods present in Window and Widget. If instanced or subclassed, might raise AttributeError."""
 
+    next_ID = 0
+
     def __init__(self):
+        self.ID = Master.next_ID
+        Master.next_ID += 1
         self.children = list()
         self.pub_arg_dict = dict()
         self.pub_arg_dict['special'] = []
@@ -22,6 +26,9 @@ class Master:
         #                                       call_if_handled_by_children), ...]]
         self.no_receive_events = set()
         self.no_send_events = set()
+
+    def __str__(self):
+        return f'<{str(self.__class__)[8:-2]} object, ID {self.ID}>'
 
     def on_screen(self, rect=None):
         if not rect:
@@ -136,7 +143,7 @@ class Master:
         return sum(self.pub_arg_dict.values(), [])
 
     def blit(self, rect=None):
-        """Blits the surface of appearance to the master's surface subsurface. If rect, actualises only children
+        """Blits the surface of appearance to the master's surface's subsurface. If rect, actualises only children
         colliding with the rect.
         Can be called by master or child.
         Private."""
@@ -146,7 +153,7 @@ class Master:
         if rect is None:
             rect = self.surface.get_rect()
         else:
-            rect = rect.clip(self.surface.get_rect())
+            rect = rect.move(self.topleft).clip(self.surface.get_rect())
             if not rect:
                 return
         old_clip = self.surface.get_clip()
@@ -154,9 +161,10 @@ class Master:
         self.surface.blit(self.my_surf, self.topleft)
         self.surface.set_clip(old_clip)
         self.add_update(rect.move(*self.surface.get_abs_offset()))
+        rect.move_ip(*[-a for a in self.topleft])
         for child in self.children:
             if child.master_rect.colliderect(rect):
-                child.blit(rect.move(*[child.topleft[i] - child.master_rect.topleft[i] for i in range(2)]))
+                child.blit(rect.move(*[-a for a in child.master_rect.topleft]))
 
     def redraw_child_reccurent(self, abs_clip, path):
         """Reccurent function used to disappear widget.
@@ -165,12 +173,12 @@ class Master:
 
         clip = abs_clip.move(*[-a for a in self.get_abs_master_rect().topleft])
         old_clip = self.surface.get_clip()
-        self.surface.set_clip(clip)
-        self.surface.blit(self.my_surf, (0, 0))
+        self.surface.set_clip(clip.move(*self.topleft))
+        self.surface.blit(self.my_surf, self.topleft)
         self.surface.set_clip(old_clip)
         for child in self.children:
             if child.master_rect.colliderect(clip) and child != path[0]:
-                child.blit(clip.move(*[-a for a in child.surface.get_offset()]))
+                child.blit(clip.move(*[-a for a in child.master_rect.topleft]))
             elif child == path[0] and len(path) > 1:
                 child.redraw_child_reccurent(abs_clip, path[1:])
 
@@ -200,6 +208,7 @@ class Window(Master):
 
     @staticmethod
     def quit(code=0):
+        # noinspection PyUnresolvedReferences
         pg.quit()
         exit(code)
 
@@ -325,7 +334,9 @@ class Widget(Master):
         """Returns the rectangle of used space in absolute master's surface.
         Public."""
 
-        return self.master_rect.move(*self.master.get_abs_master_rect().topleft)
+        rect = self.master_rect.move(*self.master.get_abs_master_rect().topleft)
+        print(self, rect)
+        return rect
 
     def get_abs_master_path(self):
         """returns the list of masters sorted from top-level.
@@ -352,13 +363,15 @@ class Widget(Master):
         """Tries to create a subsurface and actualise topleft.
         Private."""
 
-        rect = self.master.surface.get_rect().clip(self.master_rect.move(*[self.master.topleft[i] for i in range(2)]))
-        if rect.size != (0, 0):
-            self.surface = self.master.surface.subsurface(rect)
-            self.topleft = [self.master_rect.topleft[i] - rect.topleft[i] for i in range(2)]
-        else:
-            self.surface = None
-            self.topleft = (0, 0)
+        if self.on_screen():
+            rect = self.master.surface.get_rect().clip(self.master_rect.move(*[self.master.topleft[i] for i in range(2)]))
+            if rect.size != (0, 0):
+                self.surface = self.master.surface.subsurface(rect)
+                self.topleft = [self.master_rect.topleft[i] -
+                                (rect.topleft[i] - self.master.topleft[i]) for i in range(2)]
+                return
+        self.surface = None
+        self.topleft = (0, 0)
 
     def safe_init(self, **kwargs):
         """Searches for non-generate arg, if not found, generates surface. Useful for distinguishing the initialisation

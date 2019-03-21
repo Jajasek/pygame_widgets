@@ -1,4 +1,6 @@
+# noinspection PyUnresolvedReferences
 from pygame.colordict import THECOLORS
+# noinspection PyUnresolvedReferences
 from pygame.locals import *
 
 
@@ -187,6 +189,7 @@ KMOD_MODE = KMOD_MODE
 SRCALPHA = SRCALPHA
 # other references
 Rect = Rect
+color = color
 
 # mouse event values
 MOTION_LEFT = 0

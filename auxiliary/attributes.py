@@ -15,6 +15,9 @@ class Attributes:
         else:
             self.__dict__ = new
 
+    def __delete__(self, instance):
+        self.__dict__ = dict()
+
     def __getitem__(self, item):
         if isinstance(item, int):
             item = f'attr{item}'

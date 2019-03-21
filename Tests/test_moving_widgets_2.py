@@ -20,6 +20,16 @@ def Pripojeni(self, event):
     print('Pripojeni')
 
 
+def Objeveni(self, event):
+    if event.key != K_a:
+        return
+    if self.attributes.onscreen:
+        self.disappear()
+    else:
+        self.appear()
+    self.attributes.onscreen = not self.attributes.onscreen
+
+
 def Pohyb(self, event, btn, rel):
     try:
         b = event.buttons[btn]
@@ -34,25 +44,28 @@ Okno = pw.Window(size, RESIZABLE, min_size=(350, 250), max_size=(1920, 1080))
 Okno.attributes.bg_color = THECOLORS['gray42']
 Okno.add_handler(VIDEORESIZE, zmena_okna, self_arg=True, event_arg=False, call_if_handled_by_children=True)
 Okno.update_display()
-L_0 = pw.Label(Okno, auto_res=True, text='napoveda: ', font_color=THECOLORS['yellow3'], bg_color=THECOLORS['black'])
+L_0 = pw.Label(Okno, auto_res=True, text=str(Okno.fps), font_color=THECOLORS['yellow3'], bg_color=THECOLORS['black'])
 print('L_0:', L_0.connected)
 Okno.update_display()
-H_0 = pw.Holder(Okno, topleft=(-100, 100), size=(400, 200), color=THECOLORS['yellowgreen'])
+H_0 = pw.Holder(Okno, topleft=(-40, 100), size=(400, 200), color=THECOLORS['yellowgreen'])
 print('H_0:', H_0.connected)
 Okno.update_display()
 """L_1_0 = pw.Label(H_0, size=(190, 50), text='Label_1_0', bg_color=THECOLORS['wheat1'], font_color=THECOLORS['black'],
                  font_size=30, alignment_x=2, alignment_y=0)"""
-L_1_0 = pw.Holder(H_0, topleft=(200, 100), size=(190, 50), color=THECOLORS['yellow1'])
+L_1_0 = pw.Holder(H_0, topleft=(50, 100), size=(190, 50), color=THECOLORS['yellow1'])
+L_1_0.move_resize()
 print('L_1_0:', L_1_0.connected)
 Okno.update_display()
 L_1_1 = pw.Label(H_0, topleft=(0, 60), text='Label_1_1', auto_res=True, bold=True, underlined=True, italic=True,
                  font_size=25)
+L_1_0.attributes['onscreen'] = True
 print('L_1_1:', L_1_1.connected)
 Okno.update_display()
 Okno.children.reverse()
 H_0.children.reverse()
 
 L_1_0.add_handler(KEYDOWN, Pripojeni)
+L_1_0.add_handler(KEYDOWN, Objeveni)
 L_1_0.add_handler(MOUSEMOTION, Pohyb, *Args(MOTION_MIDDLE, 'rel'))
 L_1_1.add_handler(KEYDOWN, lambda self, event: self.set(visible=not self.visible) if event.key == K_v else None)
 L_1_1.add_handler(MOUSEBUTTONDOWN, Pohyb, *Args(BUTTON_LEFT, 'abs'))
@@ -70,6 +83,7 @@ while True:
         if e.type == KEYDOWN:
             if e.key == K_c and (e.mod & KMOD_LCTRL):
                 L_1_0.reconnect()
+    L_0.set(text=str(Okno.clock.get_fps()))
     Okno.update_display()
     if i == 50:
         Okno.set(min_size=(None, 700))
