@@ -39,6 +39,7 @@ class RowLayout:
         output = [0, 0]
         for i in range(2):
             distance = self.position[i][0]
+            # noinspection PyShadowingBuiltins
             object = self.position[i][2]
             if object is None:
                 output[i] = distance if self.position[i][1] in "topleft" \
@@ -50,7 +51,7 @@ class RowLayout:
                     output[i] = pos if self.position[i][1] in "topleft" else pos - self.size[i]
                 else:
                     raise AttributeError("The refered layout does not have the same Master.")
-            elif isinstance(object, W.Widget):
+            elif isinstance(object, W.Widget_):
                 if self.master == object.master:
                     pos = object.surface.get_offset()[i]
                     pos = pos + distance if self.position[i][3] in "topleft" else \
@@ -96,7 +97,7 @@ class RowLayout:
         self.master.add_update()
 
 
-class Holder(W.Widget):
+class Holder(W.Widget_):
     """Transparent widget, which can hold other widgets and organize their positions and sizes."""
 
     def __init__(self, master, topleft=(0, 0), size=(1, 1), **kwargs):

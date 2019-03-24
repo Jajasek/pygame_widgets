@@ -4,12 +4,6 @@ from pygame.colordict import THECOLORS
 from pygame.locals import *
 
 
-def Args(*args, **kwargs):
-    """This is useful when adding event handler with args or kwargs. You don't have to pass it like list and dict, but
-    you can type Args(arg1, ..., key1=kwarg1, ...) to fill the arguments of Master.add_handler() method."""
-    return args, kwargs
-
-
 # useful constants of pygame.locals which PyCharm doesn't know
 # display flags
 FULLSCREEN = FULLSCREEN
@@ -202,5 +196,29 @@ BUTTON_THUMB_FRONT = 6
 BUTTON_THUMB_BACK = 7
 
 # widget event types
-LABEL__ATTR_CHANGE = 100
-HOLDER__ATTR_CHANGE = 101
+LABEL_ATTR = 100
+HOLDER_ATTR = 101
+LABEL_TEXT = 102
+WINDOW_ATTR = 103
+WIDGET_ATTR = 104
+BUTTON_PRESSED = 105
+BUTTON_RELEASED = 106
+
+
+def Args(*args, **kwargs):
+    """This is useful when adding event handler with args or kwargs. You don't have to pass it like list and dict, but
+    you can type Args(arg1, ..., key1=kwarg1, ...) to fill the arguments of Master.add_handler() method."""
+
+    return args, kwargs
+
+
+def button_wrapper(func, buttons=(BUTTON_LEFT,), event_arg=False):
+    """When adding handler for button click event, this wrapper calls the handling function only for specified mouse
+    buttons. Pass button_wrapper(handling_func, (button1, ...)) to the func argument in Button_.add_handler()."""
+
+    def handler(event, *args, **kwargs):
+        if event.button in buttons:
+            if event_arg:
+                args = [event] + list(args)
+            func(*args, **kwargs)
+    return handler

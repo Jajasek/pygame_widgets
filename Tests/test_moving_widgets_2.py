@@ -47,7 +47,7 @@ Okno.update_display()
 L_0 = pw.Label(Okno, auto_res=True, text=str(Okno.fps), font_color=THECOLORS['yellow3'], bg_color=THECOLORS['black'])
 print('L_0:', L_0.connected)
 Okno.update_display()
-H_0 = pw.Holder(Okno, topleft=(-40, 100), size=(400, 200), color=THECOLORS['yellowgreen'])
+H_0 = pw.Holder(Okno, topleft=(-40, 100), size=(400, 200))
 print('H_0:', H_0.connected)
 Okno.update_display()
 """L_1_0 = pw.Label(H_0, size=(190, 50), text='Label_1_0', bg_color=THECOLORS['wheat1'], font_color=THECOLORS['black'],
