@@ -143,6 +143,7 @@ class Master_:
             except KeyError:
                 continue
 
+            out = False
             for handler in self.handlers[e.type]:
                 if handler[5] or not output[index]:
                     args = list()
@@ -152,7 +153,8 @@ class Master_:
                         args.append(self)
                     args += handler[1]
                     handler[0](*args, **handler[2])
-                    output[index] = True
+                    out = True
+            output[index] = out
         return output
 
     def post_event(self, event):

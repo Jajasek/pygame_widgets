@@ -203,11 +203,12 @@ WINDOW_ATTR = 103
 WIDGET_ATTR = 104
 BUTTON_PRESSED = 105
 BUTTON_RELEASED = 106
+BUTTON_BUMPED = 107
 
 
 def Args(*args, **kwargs):
     """This is useful when adding event handler with args or kwargs. You don't have to pass it like list and dict, but
-    you can type Args(arg1, ..., key1=kwarg1, ...) to fill the arguments of Master.add_handler() method."""
+    you can type *Args(arg1, ..., key1=kwarg1, ...) to fill the arguments of Master.add_handler() method."""
 
     return args, kwargs
 
