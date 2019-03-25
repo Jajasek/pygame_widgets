@@ -8,20 +8,20 @@ pg.font.init()
 class Text_(W.Widget_):
     """Base widget tor text widgets. Supplies text updating. Cannot be instaned."""
 
-    def __init__(self, master, rect, **kwargs):
+    def __init__(self, master, topleft, size, **kwargs):
         updated = kwargs.copy()
         updated[CONST.SUPER] = True
-        super().__init__(master, rect, **updated)
+        super().__init__(master, topleft, size, **updated)
         self.font = None
-        self.font_name = "calibri"
-        self.font_size = 16
+        self.font_name = CONST.DEFAULT.font
+        self.font_size = CONST.DEFAULT.font_size
 
         self.bold = False
         self.italic = False
         self.underlined = False
 
-        self.font_color = THECOLORS['black']
-        self.bg_color = None
+        self.font_color = CONST.DEFAULT.font_color
+        self.background = CONST.DEFAULT.bg_color
         self.smooth = True
         self.text = ""
         self.alignment_x = 1
@@ -29,7 +29,7 @@ class Text_(W.Widget_):
 
         self.pub_arg_dict["Text_new_font"] = ["font_name", "font_size"]
         self.pub_arg_dict["Text_set_font"] = ["bold", "italic", "underlined"]
-        self.pub_arg_dict["Text_render"] = ["font_color", "bg_color", "smooth", "text", "alignment_x", "alignment_y"]
+        self.pub_arg_dict["Text_render"] = ["font_color", "background", "smooth", "text", "alignment_x", "alignment_y"]
 
         self.safe_init(**kwargs)
 
@@ -86,7 +86,7 @@ class Label(Text_):
     def __init__(self, master, topleft=(0, 0), size=(1, 1), **kwargs):
         updated = kwargs.copy()
         updated[CONST.SUPER] = True
-        super().__init__(master, Rect(topleft, size), **updated)
+        super().__init__(master, topleft, size, **updated)
         self.new_font()
         self.safe_init(**kwargs)
 
@@ -94,12 +94,24 @@ class Label(Text_):
         """Generates new surface of appearance.
         Private."""
 
-        text = self.font.render(self.text, self.smooth, self.font_color, self.bg_color)
-        if self.auto_res:
-            self.my_surf = text
+        text = self.font.render(self.text, self.smooth, self.font_color, self.background if not
+                                isinstance(self.background, pg.Surface) and not callable(self.background) and
+                                self.background[3] else None)
+        if callable(self.background):
+            self.my_surf = self.background(self, text)
             return
-        self.my_surf = pg.Surface(self.master_rect.size, SRCALPHA)
-        self.my_surf.fill(self.bg_color if self.bg_color else THECOLORS['transparent'])
+        if self.auto_res:
+            size = text.get_size()
+        else:
+            size = self.master_rect.size
+        if isinstance(self.background, pg.Surface):
+            self.my_surf = pg.transform.scale(self.background, size)
+        else:
+            self.my_surf = pg.Surface(size, SRCALPHA)
+            self.my_surf.fill(self.background)
+        if self.auto_res:
+            self.my_surf.blit(text, (0, 0))
+            return
         dest = (self.alignment_x * (self.my_surf.get_width() - text.get_width()) / 2,
                 self.alignment_y * (self.my_surf.get_height() - text.get_height()) / 2)
         self.my_surf.blit(text, dest)
@@ -112,14 +124,6 @@ class Label(Text_):
         if old is None:
             old = dict()
         for name, value in kwargs.items():
+            # noinspection PyArgumentList
             pg.event.post(pg.event.Event(LABEL_TEXT if name == 'text' else LABEL_ATTR, widget=self,
                                          name=name, new=value, old=old[name] if name in old else None))
-
-
-class Button(Text_):
-    def __init__(self, master, topleft=(0, 0), size=(1, 1), **kwargs):
-        updated = kwargs.copy()
-        updated[CONST.SUPER] = True
-        super().__init__(master, Rect(topleft, size), **updated)
-        self.new_font()
-        self.safe_init(**kwargs)

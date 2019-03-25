@@ -50,7 +50,7 @@ Okno.update_display()
 H_0 = pw.Holder(Okno, topleft=(-40, 100), size=(400, 200))
 print('H_0:', H_0.connected)
 Okno.update_display()
-"""L_1_0 = pw.Label(H_0, size=(190, 50), text='Label_1_0', bg_color=THECOLORS['wheat1'], font_color=THECOLORS['black'],
+"""L_1_0 = pw.Label(H_0, size=(190, 50), text='Label_1_0', background=THECOLORS['wheat1'], font_color=THECOLORS['black'],
                  font_size=30, alignment_x=2, alignment_y=0)"""
 L_1_0 = pw.Holder(H_0, topleft=(50, 100), size=(190, 50), color=THECOLORS['yellow1'])
 L_1_0.move_resize()

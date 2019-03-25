@@ -135,7 +135,7 @@ class Master_:
                     output[index] = self.grab[e.type][-1].handle_events(e)[0]
                 else:
                     for child in self.children:
-                        output[index] = output[index] or child.handle_events(e)[0]
+                        output[index] = child.handle_events(e)[0] or output[index]
 
             try:
                 if not self.handlers[e.type]:
@@ -146,17 +146,17 @@ class Master_:
             for handler in self.handlers[e.type]:
                 if handler[5] or not output[index]:
                     args = list()
-                    if handler[3]:
-                        args.append(self)
                     if handler[4]:
                         args.append(e)
+                    if handler[3]:
+                        args.append(self)
                     args += handler[1]
                     handler[0](*args, **handler[2])
                     output[index] = True
         return output
 
     def post_event(self, event):
-        if event.type not in CONST.PYGAME_EVENTS:
+        if event.type not in range(1, 18):
             event.widget = self
             self.handle_events(event, filter=False)
         pg.event.post(event)
@@ -218,18 +218,21 @@ class Window(Master_):
         self.add_handler(KEYDOWN, self.AltF4, self_arg=False, call_if_handled_by_children=True)
         self.min_size = (None, None)
         self.max_size = (None, None)
+        self.bg_color = CONST.DEFAULT.window_color
         self.surf_args = (flags | SRCALPHA, depth)
         self.surface = pg.display.set_mode(resolution, *self.surf_args)
         self.my_surf = pg.Surface(self.surface.get_size())
+        self.my_surf.fill(self.bg_color)
         self.my_surf.convert_alpha()
         self.to_update = list()
-        self.pub_arg_dict['Window_attr'] = ['fps']
+        self.pub_arg_dict['Window_attr'] = ['fps', 'background']
         self.pub_arg_dict['Window_resize'] = ['min_size', 'max_size']
-        self.pub_arg_dict['special'].extend(['title', 'icon_title', 'icon'])
-        self.fps = CONST.DEFAULT_FPS
+        self.pub_arg_dict['special'].extend(['title', 'icon_title', 'icon', 'size'])
+        self.fps = CONST.DEFAULT.fps
         self.clock = pg.time.Clock()
 
         self.set(**kwargs)
+        self.blit()
 
     @staticmethod
     def quit(code=0):
@@ -263,6 +266,7 @@ class Window(Master_):
         if event.size != self.surface.get_size() or self.repair_size(event.size) != self.surface.get_size():
             self.surface = pg.display.set_mode(self.repair_size(event.size), *self.surf_args)
             self.my_surf = pg.Surface(self.surface.get_size())
+            self.my_surf.fill(self.bg_color)
             for child in self.children:
                 child.reconnect()
                 child.generate_surf()
@@ -335,6 +339,9 @@ class Window(Master_):
             for name in kwargs.keys():
                 if name in self.pub_arg_dict['Window_resize']:
                     res = True
+                elif name == 'background':
+                    self.my_surf.fill(self.bg_color)
+                    self.blit()
             if res:
                 res = self.surface.get_size()
                 self.post_event(pg.event.Event(VIDEORESIZE, size=res, w=res[0], h=res[1]))
@@ -345,7 +352,9 @@ class Window(Master_):
         """Manages settings that require some special action instead of changing attributes of self.
         Private."""
 
-        if name == 'title':
+        if name == 'size':
+            pg.event.post(pg.event.Event(VIDEORESIZE, size=value, w=value[0], h=value[1]))
+        elif name == 'title':
             pg.display.set_caption(value)
         elif name == 'icontitle':
             pg.display.set_caption(pg.display.get_caption()[0], value)
@@ -367,7 +376,7 @@ class Widget_(Master_):
     """Base for every other widget. Supplies comunication with children and parents, moving and displaying.
     Cannot be instanced."""
 
-    def __init__(self, master, rect, **kwargs):
+    def __init__(self, master, topleft, size, **kwargs):
         super().__init__()
         self.pub_arg_dict["Widget_attr"] = ["auto_res"]
         self.pub_arg_dict["special"].extend(["visible"])
@@ -375,10 +384,10 @@ class Widget_(Master_):
         self.auto_res = False
         self.visible = True
         self.connected = True
-        self.master_rect = rect
+        self.master_rect = Rect(topleft, size)
         self.create_subsurface()
         self.master.children.append(self)
-        self.my_surf = pg.Surface(rect.size)
+        self.my_surf = pg.Surface(size)
         self.safe_init(**kwargs)
 
     def get_abs_master_rect(self):
@@ -386,7 +395,6 @@ class Widget_(Master_):
         Public."""
 
         rect = self.master_rect.move(*self.master.get_abs_master_rect().topleft)
-        print(self, rect)
         return rect
 
     def get_abs_master_path(self):
