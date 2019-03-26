@@ -31,16 +31,16 @@ class Text_(W.Widget_):
         self.pub_arg_dict["Text_set_font"] = ["bold", "italic", "underlined"]
         self.pub_arg_dict["Text_render"] = ["font_color", "background", "smooth", "text", "alignment_x", "alignment_y"]
 
-        self.safe_init(**kwargs)
+        self._safe_init(**kwargs)
 
-    def new_font(self):
+    def _new_font(self):
         """Creates new pygame.font.Font object according to actual settings.
         Private."""
 
         self.font = pg.font.SysFont(self.font_name, self.font_size, self.bold, self.italic)
         self.font.set_underline(self.underlined)
 
-    def set_font(self):
+    def _set_font(self):
         """Adjusts the current pygame.font.Font object according to actual settings.
         Private."""
 
@@ -48,7 +48,7 @@ class Text_(W.Widget_):
         self.font.set_italic(self.italic)
         self.font.set_underline(self.underlined)
 
-    def set_update(self, old=None, **kwargs):
+    def _set_update(self, old=None, **kwargs):
         """Actualises its image on the screen after setting new values to attributes in most efficient way.
         Private."""
 
@@ -65,19 +65,20 @@ class Text_(W.Widget_):
                     new = True
                     break
             if new:
-                self.new_font()
+                self._new_font()
             elif set:
-                self.set_font()
+                self._set_font()
             if new or set or render:
                 old_surf = self.my_surf.copy()
-                self.generate_surf()
+                self._generate_surf()
                 if old_surf.get_size() != self.my_surf.get_size():
-                    self.disappear()
+                    """self.disappear()
                     self.master_rect.size = self.my_surf.get_size()
-                    self.create_subsurface()
-                if old_surf != self.my_surf:
+                    self._create_subsurface()"""
+                    self.move_resize(resize=self.my_surf.get_size(), resize_rel=False)
+                elif old_surf != self.my_surf:
                     self.appear()
-            self.set_event(old, **kwargs)
+            self._set_event(old, **kwargs)
 
 
 class Label(Text_):
@@ -87,10 +88,10 @@ class Label(Text_):
         updated = kwargs.copy()
         updated[CONST.SUPER] = True
         super().__init__(master, topleft, size, **updated)
-        self.new_font()
-        self.safe_init(**kwargs)
+        self._new_font()
+        self._safe_init(**kwargs)
 
-    def generate_surf(self):
+    def _generate_surf(self):
         """Generates new surface of appearance.
         Private."""
 
@@ -117,7 +118,7 @@ class Label(Text_):
         self.my_surf.blit(text, dest)
         self.my_surf.convert_alpha()
 
-    def set_event(self, old=None, **kwargs):
+    def _set_event(self, old=None, **kwargs):
         """Places events on the queue based on changed attributes.
         Private."""
 
@@ -125,5 +126,5 @@ class Label(Text_):
             old = dict()
         for name, value in kwargs.items():
             # noinspection PyArgumentList
-            pg.event.post(pg.event.Event(LABEL_TEXT if name == 'text' else LABEL_ATTR, widget=self,
-                                         name=name, new=value, old=old[name] if name in old else None))
+            self._post_event(pg.event.Event(E_LABEL_TEXT if name == 'text' else E_LABEL_ATTR, name=name, new=value,
+                                            old=old[name] if name in old else None))

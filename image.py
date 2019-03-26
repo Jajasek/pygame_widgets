@@ -11,7 +11,7 @@ class Image(W.Widget_):
         super().__init__(master, Rect(topleft, image.get_size()), **updated)
         self.pub_arg_dict['Image_set'] = ['image']
         self.image = image
-        self.safe_init(**kwargs)
+        self._safe_init(**kwargs)
 
-    def generate_surf(self):
+    def _generate_surf(self):
         self.my_surf = self.image.copy()

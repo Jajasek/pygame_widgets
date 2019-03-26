@@ -103,13 +103,16 @@ class Holder(W.Widget_):
     def __init__(self, master, topleft=(0, 0), size=(1, 1), **kwargs):
         updated = kwargs.copy()
         updated[CONST.SUPER] = True
-        super().__init__(master, Rect(topleft, size), **updated)
+        super().__init__(master, topleft, size, **updated)
         self.pub_arg_dict['Holder_attr'] = ['color']
         self.layouts = list()
         self.color = [0, 255, 0, 0]
-        self.safe_init(**kwargs)
+        self._safe_init(**kwargs)
 
-    def generate_surf(self):
+    def _generate_surf(self):
+        """Generates new surface of appearance.
+        Private."""
+
         self.my_surf = pg.Surface(self.master_rect.size, SRCALPHA)
         self.my_surf.fill(self.color)
         self.my_surf.convert_alpha()

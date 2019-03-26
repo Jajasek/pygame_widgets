@@ -21,7 +21,7 @@ class Master_:
         self.my_surf = None
         self.topleft = (0, 0)
         self.master_rect = Rect(0, 0, 1, 1)
-        self.grab = list()  # [event_type: [Child, ...]]
+        self.grab = dict()  # [event_type: [Child, ...]]
         self.handlers = dict()  # [event_type: [(func, [arg1, ...], include_event_arg, /
         #                                       call_if_handled_by_children), ...]]
         self.no_receive_events = set()
@@ -30,7 +30,7 @@ class Master_:
     def __str__(self):
         return f'<{str(self.__class__)[8:-2]} object, ID {self.ID}>'
 
-    def on_screen(self, rect=None):
+    def _on_screen(self, rect=None):
         """Returns True if there is its image on current window, otherwise False.
         Private."""
 
@@ -42,24 +42,28 @@ class Master_:
             b = True
         return pg.display.get_surface().get_rect().colliderect(rect) and b
 
-    def add_grab(self, event_type, child):
+    def add_grab(self, event_type, child, level=0):
         """Child grabs every event of specified type.
         Public."""
 
         if child not in self.children:
             return
-        if len(self.grab) <= event_type:
-            self.grab += [[]] * (1 + event_type - len(self.grab))
+        if event_type not in self.grab.keys():
+            self.grab[event_type] = list()
         self.grab[event_type].append(child)
+        if level:
+            try:
+                self.master.add_grab(event_type, self, level - 1)
+            except AttributeError:
+                pass
 
     def remove_grab(self, event_type, child):
         """Disables grabbing events of event_type by child.
         Public."""
 
         try:
-            while True:
-                self.grab[event_type].remove(child)
-        except (ValueError, IndexError):
+            self.grab[event_type].remove(child)
+        except ValueError:
             pass
 
     def add_handler(self, event_type, func, args=None, kwargs=None, self_arg=True, event_arg=True,
@@ -128,7 +132,7 @@ class Master_:
             if e.type not in self.no_send_events:
                 try:
                     grab_exists = bool(self.grab[e.type])
-                except IndexError:
+                except KeyError:
                     grab_exists = False
 
                 if grab_exists:
@@ -157,7 +161,11 @@ class Master_:
             output[index] = out
         return output
 
-    def post_event(self, event):
+    def _post_event(self, event):
+        """Method that posts signed event and immediatelly handles it (when the event gets to the handling process
+        by use of Window.handle_events() it will be automatically filtered as handled).
+        Private."""
+
         if event.type not in range(1, 18):
             event.widget = self
             self.handle_events(event, filter=False)
@@ -175,7 +183,7 @@ class Master_:
         Can be called by master or child.
         Private."""
 
-        if not self.visible or not self.on_screen():
+        if not self.visible or not self._on_screen():
             return
         if rect is None:
             rect = self.surface.get_rect()
@@ -215,9 +223,9 @@ class Window(Master_):
 
     def __init__(self, resolution=(0, 0), flags=0, depth=0, **kwargs):
         super().__init__()
-        self.add_handler(VIDEORESIZE, self.resize, self_arg=False, call_if_handled_by_children=True)
+        self.add_handler(VIDEORESIZE, self._resize, self_arg=False, call_if_handled_by_children=True)
         self.add_handler(QUIT, self.quit, self_arg=False, event_arg=False, call_if_handled_by_children=True)
-        self.add_handler(KEYDOWN, self.AltF4, self_arg=False, call_if_handled_by_children=True)
+        self.add_handler(KEYDOWN, self._AltF4, self_arg=False, call_if_handled_by_children=True)
         self.min_size = (None, None)
         self.max_size = (None, None)
         self.bg_color = CONST.DEFAULT.window_color
@@ -245,7 +253,7 @@ class Window(Master_):
         pg.quit()
         exit(code)
 
-    def AltF4(self, event):
+    def _AltF4(self, event):
         """Default handler for pygame.KEYDOWN event. Quits if Alt + F4 is pressed.
         Private."""
 
@@ -261,25 +269,26 @@ class Window(Master_):
         self.to_update = list()
         self.clock.tick(self.fps)
 
-    def resize(self, event):
+    def _resize(self, event):
         """Default handler for Pygame.VIDEORESIZE event.
         Private."""
 
-        if event.size != self.surface.get_size() or self.repair_size(event.size) != self.surface.get_size():
-            self.surface = pg.display.set_mode(self.repair_size(event.size), *self.surf_args)
+        if event.size != self.surface.get_size() or self._repair_size(event.size) != self.surface.get_size():
+            self.surface = pg.display.set_mode(self._repair_size(event.size), *self.surf_args)
             self.my_surf = pg.Surface(self.surface.get_size())
             self.my_surf.fill(self.bg_color)
             for child in self.children:
                 child.reconnect()
-                child.generate_surf()
+                child._generate_surf()
                 if child.master_rect.size != child.my_surf.get_size():
-                    child.disappear()
+                    """child.disappear()
                     child.master_rect.size = child.my_surf.get_size()
-                    child.create_subsurface()
+                    child._create_subsurface()"""
+                    child.move_resize(resize=child.my_surf.get_size(), resize_rel=False)
             self.blit(self.surface.get_rect())
             self.add_update(self.surface.get_rect())
 
-    def repair_size(self, size):
+    def _repair_size(self, size):
         """Change the size so that it is in defined limits.
         Private."""
 
@@ -295,12 +304,21 @@ class Window(Master_):
         """Adds update rect to the to_update list.
         Public."""
 
-        if self.on_screen(rect):
+        if self._on_screen(rect):
             self.to_update.append(self.surface.get_rect().clip(rect))
             return True
         return False
 
     def get_abs_master_rect(self):
+        """This is here for compatibility with some methods of Master_.
+        Public."""
+
+        return self.surface.get_rect()
+
+    def get_abs_surf_rect(self):
+        """This is here for compatibility with some methods of Master_.
+        Public."""
+
         return self.surface.get_rect()
 
     def change_surface(self, surf, dest=(0, 0)):
@@ -324,13 +342,13 @@ class Window(Master_):
         for name, value in kwargs.items():
             if name in self.kwarg_list():
                 if name in self.pub_arg_dict['special']:
-                    self.set_special(name, value)
+                    self._set_special(name, value)
                 else:
                     old[name] = getattr(self, name, None)
                     setattr(self, name, value)
-        self.set_update(old, **kwargs)
+        self._set_update(old, **kwargs)
 
-    def set_update(self, old=None, **kwargs):
+    def _set_update(self, old=None, **kwargs):
         """Actualises its image on the screen after setting new values to attributes in most efficient way.
         Private."""
 
@@ -346,11 +364,11 @@ class Window(Master_):
                     self.blit()
             if res:
                 res = self.surface.get_size()
-                self.post_event(pg.event.Event(VIDEORESIZE, size=res, w=res[0], h=res[1]))
-            self.set_event(old, **kwargs)
+                self._post_event(pg.event.Event(VIDEORESIZE, size=res, w=res[0], h=res[1]))
+            self._set_event(old, **kwargs)
 
     # noinspection PyMethodMayBeStatic
-    def set_special(self, name, value):
+    def _set_special(self, name, value):
         """Manages settings that require some special action instead of changing attributes of self.
         Private."""
 
@@ -364,14 +382,14 @@ class Window(Master_):
             pg.display.set_icon(value)
 
     # noinspection PyMethodMayBeStatic
-    def set_event(self, old=None, **kwargs):
+    def _set_event(self, old=None, **kwargs):
         """Places events on the queue based on changed attributes.
         Private."""
 
         if old is None:
             old = dict()
         for name, value in kwargs.items():
-            self.post_event(pg.event.Event(WINDOW_ATTR, name=name, new=value, old=old[name] if name in old else None))
+            self._post_event(pg.event.Event(E_WINDOW_ATTR, name=name, new=value, old=old[name] if name in old else None))
 
 
 class Widget_(Master_):
@@ -387,10 +405,10 @@ class Widget_(Master_):
         self.visible = True
         self.connected = True
         self.master_rect = Rect(topleft, size)
-        self.create_subsurface()
+        self._create_subsurface()
         self.master.children.append(self)
         self.my_surf = pg.Surface(size)
-        self.safe_init(**kwargs)
+        self._safe_init(**kwargs)
 
     def get_abs_master_rect(self):
         """Returns the rectangle of used space in absolute master's surface.
@@ -399,8 +417,19 @@ class Widget_(Master_):
         rect = self.master_rect.move(*self.master.get_abs_master_rect().topleft)
         return rect
 
+    def get_abs_surf_rect(self):
+        """Returns the rectangle of actual used space in the window. If it is not inside the window surface,
+        returns 0-sized rectangle.
+        Public."""
+
+        try:
+            surf_rect = self.surface.get_rect().move(self.surface.get_abs_offset())
+        except AttributeError:
+            surf_rect = Rect(0, 0, 0, 0)
+        return surf_rect
+
     def get_abs_master_path(self):
-        """returns the list of masters sorted from top-level.
+        """Returns the list of masters sorted from top-level.
         Public."""
 
         master = self.master
@@ -414,17 +443,17 @@ class Widget_(Master_):
         path.reverse()
         return path
 
-    def generate_surf(self):
+    def _generate_surf(self):
         """Generates new surface of appearance.
         Private."""
 
         self.my_surf = pg.Surface(self.master_rect.size)
 
-    def create_subsurface(self):
+    def _create_subsurface(self):
         """Tries to create a subsurface and actualise topleft.
         Private."""
 
-        if self.on_screen():
+        if self._on_screen():
             rect = self.master.surface.get_rect().clip(
                 self.master_rect.move(*[self.master.topleft[i] for i in range(2)]))
             if rect.size != (0, 0):
@@ -435,7 +464,7 @@ class Widget_(Master_):
         self.surface = None
         self.topleft = (0, 0)
 
-    def safe_init(self, **kwargs):
+    def _safe_init(self, **kwargs):
         """Searches for non-generate arg, if not found, generates surface. Useful for distinguishing the initialisation
         of user-requested instance and initialisation of the super() of it.
         Private."""
@@ -444,24 +473,24 @@ class Widget_(Master_):
             if kwargs[CONST.SUPER]:
                 return
         self.set(**kwargs)
-        self.generate_surf()
+        self._generate_surf()
         if self.master_rect.size != self.my_surf.get_size():
             self.master_rect.size = self.my_surf.get_size()
-            self.create_subsurface()
+            self._create_subsurface()
         self.appear()
 
     def appear(self):
         """Method used to draw widget on the screen properly.
         Public."""
 
-        if self.connected and self.on_screen():
+        if self.connected and self._on_screen() and self.visible:
             self.get_abs_master_path()[0].blit(self.get_abs_master_rect())
 
     def disappear(self):
         """Method used to redraw widget by other widgets. It could cause problems if not used carefully.
         Private."""
 
-        if self.connected and self.on_screen():
+        if self.connected and self._on_screen():
             path = self.get_abs_master_path()
             path[0].redraw_child_reccurent(self.get_abs_master_rect().clip(pg.display.get_surface().get_rect()),
                                            path[1:] + [self])
@@ -475,7 +504,7 @@ class Widget_(Master_):
 
         if not rect:
             rect = self.get_abs_master_rect()
-        if self.get_abs_master_rect().colliderect(rect) and self.on_screen(rect):
+        if self.get_abs_master_rect().colliderect(rect) and self._on_screen(rect):
             return self.master.add_update(self.get_abs_master_rect().clip(rect))
         return False
 
@@ -490,7 +519,7 @@ class Widget_(Master_):
         if abs_rect:
             rect.move_ip(*[-i for i in self.master.get_abs_master_rect().topleft])
         self.master_rect = rect
-        self.create_subsurface()
+        self._create_subsurface()
         if self not in self.master.children:
             self.master.children.append(self)
         for child in self.children:
@@ -519,28 +548,29 @@ class Widget_(Master_):
         for name, value in kwargs.items():
             if name in self.kwarg_list():
                 if name in self.pub_arg_dict['special']:
-                    self.set_special(name, value)
+                    self._set_special(name, value)
                 else:
                     old[name] = getattr(self, name, None)
                     setattr(self, name, value)
-        self.set_update(old, **kwargs)
+        self._set_update(old, **kwargs)
 
-    def set_update(self, old=None, **kwargs):
+    def _set_update(self, old=None, **kwargs):
         """Actualises its image on the screen after setting new values to attributes in most efficient way.
         Private."""
 
         if kwargs:
             old_surf = self.my_surf.copy()
-            self.generate_surf()
+            self._generate_surf()
             if old_surf.get_size() != self.my_surf.get_size():
-                self.disappear()
+                """self.disappear()
                 self.master_rect.size = self.my_surf.get_size()
-                self.create_subsurface()
-            if old_surf != self.my_surf:
+                self._create_subsurface()"""
+                self.move_resize(resize=self.my_surf.get_size(), resize_rel=False)
+            elif old_surf != self.my_surf:
                 self.appear()
-            self.set_event(old, **kwargs)
+            self._set_event(old, **kwargs)
 
-    def set_special(self, name, value):
+    def _set_special(self, name, value):
         """Does special actions when changing special attributes.
         Private."""
 
@@ -552,21 +582,21 @@ class Widget_(Master_):
                 self.disappear()
 
     # noinspection PyMethodMayBeStatic
-    def set_event(self, old=None, **kwargs):
+    def _set_event(self, old=None, **kwargs):
         """Places events on the queue based on changed attributes.
         Private."""
 
         if old is None:
             old = dict()
         for name, value in kwargs.items():
-            self.post_event(pg.event.Event(WIDGET_ATTR, name=name, new=value, old=old[name] if name in old else None))
+            self._post_event(pg.event.Event(E_WIDGET_ATTR, name=name, new=value, old=old[name] if name in old else None))
 
     def move_resize(self, move=(0, 0), move_level: int = 'rel', resize=(1, 1), resize_rel=True, update_surf=True):
         """Moves its subsurface inside master's surface to the given position and resizes it.
         move_level is an integer or one of strings 'abs' and 'rel'.
         Public."""
 
-        size = self.my_surf.get_size()
+        size = self.master_rect.size
         if resize_rel:
             resize = [resize[i] * size[i] for i in range(2)]
 
@@ -586,7 +616,7 @@ class Widget_(Master_):
             rect = Rect(move, resize)
             self.disappear()
             self.master_rect = rect
-            self.create_subsurface()
+            self._create_subsurface()
         else:
             if move_level == 'rel':
                 self.master_rect.move_ip(*move)
@@ -595,10 +625,10 @@ class Widget_(Master_):
             self.master_rect.size = resize
             self.surface = pg.Surface(resize)
         if update_surf:
-            self.generate_surf()
+            self._generate_surf()
             if self.master_rect.size != self.my_surf.get_size():
                 self.master_rect.size = self.my_surf.get_size()
-                self.create_subsurface()
+                self._create_subsurface()
         for child in self.children:
             child.reconnect()
         self.appear()

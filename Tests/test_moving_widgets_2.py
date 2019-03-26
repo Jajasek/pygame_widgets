@@ -15,12 +15,12 @@ def zmena_okna(self):
     self.add_update(self.surface.get_rect())
 
 
-def Pripojeni(self, event):
+def Pripojeni(event, self):
     (self.disconnect() if self.connected else self.reconnect()) if event.key == K_c else None
     print('Pripojeni')
 
 
-def Objeveni(self, event):
+def Objeveni(event, self):
     if event.key != K_a:
         return
     if self.attributes.onscreen:
@@ -30,7 +30,8 @@ def Objeveni(self, event):
     self.attributes.onscreen = not self.attributes.onscreen
 
 
-def Pohyb(self, event, btn, rel):
+def Pohyb(event, self, btn, rel):
+    print(f'moving {self}')
     try:
         b = event.buttons[btn]
     except AttributeError:
@@ -70,7 +71,7 @@ L_1_0.add_handler(MOUSEMOTION, Pohyb, *Args(MOTION_MIDDLE, 'rel'))
 L_1_1.add_handler(KEYDOWN, lambda self, event: self.set(visible=not self.visible) if event.key == K_v else None)
 L_1_1.add_handler(MOUSEBUTTONDOWN, Pohyb, *Args(BUTTON_LEFT, 'abs'))
 L_1_1.add_handler(MOUSEMOTION, Pohyb, *Args(MOTION_LEFT, 'abs'))
-H_0.add_handler(MOUSEMOTION, Pohyb, *Args(MOTION_RIGHT, 'rel'))
+H_0.add_handler(MOUSEMOTION, Pohyb, *Args(MOTION_RIGHT, 'rel'), call_if_handled_by_children=True)
 
 i = 0
 while True:

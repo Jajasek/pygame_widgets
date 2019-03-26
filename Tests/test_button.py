@@ -20,11 +20,11 @@ Okno.attributes.size1 = (500, 400)
 Okno.attributes.size2 = (300, 300)
 Tlaco2 = pygame_widgets.Button(Okno, size=(100, 20), text='Pretahni me')
 Tlaco2.attributes.drag = False
-Tlaco2.add_handler(BUTTON_PRESSED, button_wrapper(PretahnutiSS), *Args(True))
-Tlaco2.add_handler(BUTTON_RELEASED, button_wrapper(PretahnutiSS), *Args(False))
+Tlaco2.add_handler(E_BUTTON_PRESSED, button_wrapper(PretahnutiSS), *Args(True))
+Tlaco2.add_handler(E_BUTTON_RELEASED, button_wrapper(PretahnutiSS), *Args(False))
 Tlaco2.add_handler(MOUSEMOTION, Pretahnuti)
 Tlaco = pygame_widgets.Button(Okno, (200, 150), (100, 20), text='Zmackni me')
-Tlaco.add_handler(BUTTON_BUMPED, button_wrapper(Zmacknuti, (BUTTON_LEFT, BUTTON_RIGHT), True), [Okno], self_arg=False)
+Tlaco.add_handler(E_BUTTON_BUMPED, button_wrapper(Zmacknuti, (BUTTON_LEFT, BUTTON_RIGHT), True), [Okno], self_arg=False)
 
 while True:
     events = pygame_widgets.pygame.event.get()
