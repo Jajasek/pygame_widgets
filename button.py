@@ -11,16 +11,17 @@ class Button_(W.Widget_):
         updated[CONST.SUPER] = True
         super().__init__(master, topleft, size, **updated)
         self.pressed = set()
+        self.mouseover = False
         self.add_handler(MOUSEBUTTONDOWN, self._click, self_arg=False)
         self.add_handler(MOUSEBUTTONUP, self._click, self_arg=False)
+        self.add_handler(MOUSEMOTION, self._movement, self_arg=False)
         self._safe_init(**kwargs)
 
     def _click(self, event):
-        """Default handler for MOUSEBUTTON events, actually creates the behaviour of button: posts events E_BUTTON_.
+        """Default handler for MOUSEBUTTON events, actually creates the behaviour of button. Posts events E_BUTTON_.
         Private."""
 
-        surf_rect = self.get_abs_surf_rect()
-        if surf_rect.collidepoint(event.pos):
+        if self.get_abs_surf_rect().collidepoint(event.pos):
             if event.type == MOUSEBUTTONDOWN:
                 # noinspection PyArgumentList
                 self._post_event(pg.event.Event(E_BUTTON_PRESSED, button=event.button, pos=event.pos))
@@ -33,6 +34,21 @@ class Button_(W.Widget_):
                     self._post_event(pg.event.Event(E_BUTTON_BUMPED, button=event.button, pos=event.pos))
         if event.type == MOUSEBUTTONUP and event.button in self.pressed:
             self.pressed.remove(event.button)
+
+    def _movement(self, event):
+        """Default handler for MOUSEMOTION event, creates the behaviour of the button when mouse goes in and outside.
+        Posts events E_BUTTON_.
+        Private."""
+
+        if self.get_abs_surf_rect().collidepoint(event.pos) and not self.mouseover:
+            self._post_event(pg.event.Event(E_BUTTON_MOUSEOVER, pos=event.pos))
+            self.mouseover = True
+        elif not self.get_abs_surf_rect().collidepoint(event.pos) and self.mouseover:
+            if self.pressed:
+                self._post_event(pg.event.Event(E_BUTTON_SLIDED, buttons=self.pressed))
+                self.pressed = set()
+            else:
+                self._post_event(pg.event.Event(E_BUTTON_MOUSEOUTSIDE, pos=event.pos))
 
 
 class Button(Button_, T.Label):
@@ -49,7 +65,7 @@ class Button(Button_, T.Label):
         self.add_handler(MOUSEBUTTONUP, self._mouseover_check, self_arg=False, call_if_handled_by_children=True)
         self.add_handler(MOUSEMOTION, self._mouseover_check, self_arg=False, call_if_handled_by_children=True)
 
-        self.pub_arg_dict['Button_appearance'] = ['appearance', 'bg_normal', 'bg_mouseover', 'bg_pressed']
+        self.pub_arg_dict['Button_appearance'] = ['bg_normal', 'bg_mouseover', 'bg_pressed']
         self._safe_init(**kwargs)
 
     def _mouseover_check(self, event):
@@ -109,5 +125,5 @@ class Button(Button_, T.Label):
         for name, value in kwargs.items():
             # noinspection PyArgumentList
             self._post_event(pg.event.Event(E_BUTTON_APPEARANCE if name in self.pub_arg_dict['Button_appearance'] else
-                                           E_BUTTON_ATTR, name=name, new=value, old=old[name] if name in old else None))
+                                            E_BUTTON_ATTR, name=name, new=value, old=old[name] if name in old else None))
 

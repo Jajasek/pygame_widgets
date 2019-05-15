@@ -1,4 +1,4 @@
-from public import THECOLORS, SRCALPHA
+from pygame_widgets.constants.public import THECOLORS, SRCALPHA
 from pygame import Surface
 
 

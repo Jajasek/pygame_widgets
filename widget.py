@@ -1,5 +1,5 @@
 import pygame as pg
-from attributes import Attributes
+from pygame_widgets.auxiliary.attributes import Attributes
 import pygame_widgets.constants.private as CONST
 from pygame_widgets.constants.public import *
 
