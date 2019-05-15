@@ -1,1 +1,1 @@
-# TODO:
+# TODO: create the entry class
