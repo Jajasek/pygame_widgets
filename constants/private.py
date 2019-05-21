@@ -19,18 +19,21 @@ def button_bg(fill, edge):
 
 
 class DEFAULT:
-    # window attributes
-    fps = 25
-    window_color = THECOLORS['white']
-    # Label attributes
-    bg_color = THECOLORS['transparent']
-    font_color = THECOLORS['black']
-    font = 'calibri'
-    font_size = 16
-    # button attributes
-    bg_normal = button_bg(THECOLORS['gray80'], THECOLORS['gray65'])
-    bg_mouseover = button_bg(THECOLORS['lightblue1'], THECOLORS['blue'])
-    bg_pressed = button_bg(THECOLORS['lightblue3'], THECOLORS['blue'])
+    class WINDOW:
+        fps = 25
+        color = THECOLORS['white']
+
+    class TEXT:
+        bg_color = THECOLORS['transparent']
+        font_color = THECOLORS['black']
+        font = 'calibri'
+        font_size = 16
+
+    class BUTTON:
+        bg_normal = button_bg(THECOLORS['gray80'], THECOLORS['gray65'])
+        bg_mouseover = button_bg(THECOLORS['lightblue1'], THECOLORS['blue'])
+        bg_pressed = button_bg(THECOLORS['lightblue3'], THECOLORS['blue'])
 
 
 SUPER = 's'  # kwarg used to detect if the class is initialising as super() or not
+PYGAME_EVENTS = range(1, 18)

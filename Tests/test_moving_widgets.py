@@ -2,7 +2,6 @@ import widget
 import text
 import pygame
 import holder
-from pygame.locals import *
 from pygame.colordict import THECOLORS
 pygame.init()
 

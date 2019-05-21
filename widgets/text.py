@@ -1,29 +1,29 @@
-import pygame_widgets.widget as W
+import pygame_widgets.widgets.widget as W
 import pygame as pg
 import pygame_widgets.constants.private as CONST
 from pygame_widgets.constants.public import *
 pg.font.init()
 
 
-class Text_(W.Widget_):
-    """Base widget tor text widgets. Supplies text updating. Cannot be instaned."""
+class _Text(W._Widget):
+    """Virtual base widget tor text widgets. Supplies text updating. Cannot be instaned."""
 
     def __init__(self, master, topleft, size, **kwargs):
         updated = kwargs.copy()
         updated[CONST.SUPER] = True
         super().__init__(master, topleft, size, **updated)
         self.font = None
-        self.font_name = CONST.DEFAULT.font
-        self.font_size = CONST.DEFAULT.font_size
+        self.font_name = CONST.DEFAULT.TEXT.font
+        self.font_size = CONST.DEFAULT.TEXT.font_size
 
         self.bold = False
         self.italic = False
         self.underlined = False
 
-        self.font_color = CONST.DEFAULT.font_color
-        self.background = CONST.DEFAULT.bg_color
+        self.font_color = CONST.DEFAULT.TEXT.font_color
+        self.background = CONST.DEFAULT.TEXT.bg_color
         self.smooth = True
-        self.text = ""
+        self.text = "Hello World!"
         self.alignment_x = 1
         self.alignment_y = 1
 
@@ -81,8 +81,8 @@ class Text_(W.Widget_):
             self._set_event(old, **kwargs)
 
 
-class Label(Text_):
-    """Widget with 1-line unchangable text on a solid or transparent background."""
+class Label(_Text):
+    """Widget with 1-line unchangable text on a solid, transparent or custom background."""
 
     def __init__(self, master, topleft=(0, 0), size=(1, 1), **kwargs):
         updated = kwargs.copy()

@@ -1,17 +1,18 @@
 import pygame as pg
 from pygame_widgets.auxiliary.attributes import Attributes
+from pygame_widgets.auxiliary.handler import Handler
 import pygame_widgets.constants.private as CONST
 from pygame_widgets.constants.public import *
 
 
-class Master_:
+class _Master:
     """Class for methods present in Window and Widget. If instanced or subclassed, might raise AttributeError."""
 
     next_ID = 0
 
     def __init__(self):
-        self.ID = Master_.next_ID
-        Master_.next_ID += 1
+        self.ID = _Master.next_ID
+        _Master.next_ID += 1
         self.children = list()
         self.pub_arg_dict = dict()
         self.pub_arg_dict['special'] = []
@@ -36,9 +37,9 @@ class Master_:
 
         if not rect:
             rect = self.get_abs_master_rect()
-        try:
+        if hasattr(self, 'master'):
             b = self.master.surface is not None
-        except AttributeError:
+        else:
             b = True
         return pg.display.get_surface().get_rect().colliderect(rect) and b
 
@@ -52,32 +53,28 @@ class Master_:
             self.grab[event_type] = list()
         self.grab[event_type].append(child)
         if level:
-            try:
+            if hasattr(self, 'master'):
                 self.master.add_grab(event_type, self, level - 1)
-            except AttributeError:
-                pass
 
-    def remove_grab(self, event_type, child):
+    def remove_grab(self, event_type, child, level=0):
         """Disables grabbing events of event_type by child.
         Public."""
 
-        try:
+        if child in self.grab[event_type]:
+            self.grab[event_type].reverse()
             self.grab[event_type].remove(child)
-        except ValueError:
-            pass
+            self.grab[event_type].reverse()
+        if hasattr(self, 'master') and level:
+            self.master.remove_grab(event_type, self, level - 1)
 
     def add_handler(self, event_type, func, args=None, kwargs=None, self_arg=True, event_arg=True,
                     call_if_handled_by_children=False):
         """Adds handling function with settings.
         Public."""
 
-        if args is None:
-            args = list()
-        if kwargs is None:
-            kwargs = dict()
         if event_type not in self.handlers:
             self.handlers[event_type] = list()
-        self.handlers[event_type].append((func, args, kwargs, self_arg, event_arg, call_if_handled_by_children))
+        self.handlers[event_type].append(Handler(func, args, kwargs, self_arg, event_arg, call_if_handled_by_children))
 
     def remove_handler(self, event_type, func, args=None, kwargs=None, self_arg=True, event_arg=True):
         """Removes handling function with settings.
@@ -87,9 +84,17 @@ class Master_:
             args = list()
         if kwargs is None:
             kwargs = dict()
-        for handler in self.handlers[event_type]:
-            if handler[:5] == (func, args, kwargs, self_arg, event_arg):
+        for handler in self.handlers[event_type].copy():
+            if handler.func == func and handler.args == args and handler.kwargs == kwargs and \
+               handler.self_arg == self_arg and handler.event_arg == event_arg:
                 self.handlers[event_type].remove(handler)
+
+    def get_handlers(self, copy=True):
+        """Returns a copy or a pointer to the list of handlers. The copy is useles, but with the pointer can user
+        change the order of handlers. You should know, what you are doing. To add or remove handlers,
+        it is reccomended to use the add_handler and remove_handler methods.
+        Public."""
+        return self.handlers.copy() if copy else self.handlers
 
     def add_nr_events(self, *args):
         for e in args:
@@ -149,24 +154,18 @@ class Master_:
 
             out = False
             for handler in self.handlers[e.type]:
-                if handler[5] or not output[index]:
-                    args = list()
-                    if handler[4]:
-                        args.append(e)
-                    if handler[3]:
-                        args.append(self)
-                    args += handler[1]
-                    handler[0](*args, **handler[2])
+                if handler.if_handled or not output[index]:
+                    handler(e, self)
                     out = True
             output[index] = out
         return output
 
     def _post_event(self, event):
         """Method that posts signed event and immediatelly handles it (when the event gets to the handling process
-        by use of Window.handle_events() it will be automatically filtered as handled).
+        by use of Window.handle_events(), it will be automatically filtered out).
         Private."""
 
-        if event.type not in range(1, 18):
+        if event.type not in CONST.PYGAME_EVENTS:
             event.widget = self
             self.handle_events(event, filter=False)
         pg.event.post(event)
@@ -218,7 +217,7 @@ class Master_:
                 child.redraw_child_reccurent(abs_clip, path[1:])
 
 
-class Window(Master_):
+class Window(_Master):
     """The main master. Causes problems if instanced multiple times."""
 
     def __init__(self, resolution=(0, 0), flags=0, depth=0, **kwargs):
@@ -228,17 +227,17 @@ class Window(Master_):
         self.add_handler(KEYDOWN, self._AltF4, self_arg=False, call_if_handled_by_children=True)
         self.min_size = (None, None)
         self.max_size = (None, None)
-        self.bg_color = CONST.DEFAULT.window_color
+        self.bg_color = CONST.DEFAULT.WINDOW.color
         self.surf_args = (flags | SRCALPHA, depth)
         self.surface = pg.display.set_mode(resolution, *self.surf_args)
-        self.my_surf = pg.Surface(self.surface.get_size())
+        self.my_surf = pg.Surface(self.surface.get_size(), SRCALPHA)
         self.my_surf.fill(self.bg_color)
         self.my_surf.convert_alpha()
         self.to_update = list()
         self.pub_arg_dict['Window_attr'] = ['fps', 'background']
         self.pub_arg_dict['Window_resize'] = ['min_size', 'max_size']
         self.pub_arg_dict['special'].extend(['title', 'icon_title', 'icon', 'size'])
-        self.fps = CONST.DEFAULT.fps
+        self.fps = CONST.DEFAULT.WINDOW.fps
         self.clock = pg.time.Clock()
 
         self.set(**kwargs)
@@ -275,7 +274,7 @@ class Window(Master_):
 
         if event.size != self.surface.get_size() or self._repair_size(event.size) != self.surface.get_size():
             self.surface = pg.display.set_mode(self._repair_size(event.size), *self.surf_args)
-            self.my_surf = pg.Surface(self.surface.get_size())
+            self.my_surf = pg.Surface(self.surface.get_size(), SRCALPHA)
             self.my_surf.fill(self.bg_color)
             for child in self.children:
                 child.reconnect()
@@ -392,7 +391,7 @@ class Window(Master_):
             self._post_event(pg.event.Event(E_WINDOW_ATTR, name=name, new=value, old=old[name] if name in old else None))
 
 
-class Widget_(Master_):
+class _Widget(_Master):
     """Base for every other widget. Supplies comunication with children and parents, moving and displaying.
     Cannot be instanced."""
 
@@ -407,7 +406,7 @@ class Widget_(Master_):
         self.master_rect = Rect(topleft, size)
         self._create_subsurface()
         self.master.children.append(self)
-        self.my_surf = pg.Surface(size)
+        self.my_surf = pg.Surface(size, SRCALPHA)
         self._safe_init(**kwargs)
 
     def get_abs_master_rect(self):
@@ -447,7 +446,7 @@ class Widget_(Master_):
         """Generates new surface of appearance.
         Private."""
 
-        self.my_surf = pg.Surface(self.master_rect.size)
+        self.my_surf = pg.Surface(self.master_rect.size, SRCALPHA)
 
     def _create_subsurface(self):
         """Tries to create a subsurface and actualise topleft.
@@ -562,10 +561,7 @@ class Widget_(Master_):
             old_surf = self.my_surf.copy()
             self._generate_surf()
             if old_surf.get_size() != self.my_surf.get_size():
-                """self.disappear()
-                self.master_rect.size = self.my_surf.get_size()
-                self._create_subsurface()"""
-                self.move_resize(resize=self.my_surf.get_size(), resize_rel=False)
+                self.move_resize(resize=self.my_surf.get_size(), resize_rel=False, update_surf=False)
             elif old_surf != self.my_surf:
                 self.appear()
             self._set_event(old, **kwargs)
@@ -581,7 +577,6 @@ class Widget_(Master_):
             else:
                 self.disappear()
 
-    # noinspection PyMethodMayBeStatic
     def _set_event(self, old=None, **kwargs):
         """Places events on the queue based on changed attributes.
         Private."""
@@ -623,7 +618,7 @@ class Widget_(Master_):
             else:
                 self.master_rect.topleft = move
             self.master_rect.size = resize
-            self.surface = pg.Surface(resize)
+            self.surface = pg.Surface(resize, SRCALPHA)
         if update_surf:
             self._generate_surf()
             if self.master_rect.size != self.my_surf.get_size():

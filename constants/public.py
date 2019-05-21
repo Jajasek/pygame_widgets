@@ -196,11 +196,11 @@ BUTTON_THUMB_FRONT = 6
 BUTTON_THUMB_BACK = 7
 
 # widget event types
-E_LABEL_ATTR = 100
-E_HOLDER_ATTR = 101
-E_LABEL_TEXT = 102
-E_WINDOW_ATTR = 103
-E_WIDGET_ATTR = 104
+E_WINDOW_ATTR = 100
+E_WIDGET_ATTR = 101
+E_HOLDER_ATTR = 102
+E_LABEL_ATTR = 103
+E_LABEL_TEXT = 104
 E_BUTTON_PRESSED = 105
 E_BUTTON_RELEASED = 106
 E_BUTTON_BUMPED = 107
@@ -209,6 +209,7 @@ E_BUTTON_MOUSEOVER = 109
 E_BUTTON_MOUSEOUTSIDE = 110
 E_BUTTON_ATTR = 111
 E_BUTTON_APPEARANCE = 112
+E_IMAGE_APPEARANCE = 113
 
 
 def Args(*args, **kwargs):
@@ -218,12 +219,14 @@ def Args(*args, **kwargs):
     return args, kwargs
 
 
-def button_wrapper(func, buttons=(BUTTON_LEFT,), event_arg=False):
+def button_wrapper(func, buttons=(BUTTON_LEFT,), self_arg=False, event_arg=False):
     """When adding handler for button click event, this wrapper calls the handling function only for specified mouse
     buttons. Pass button_wrapper(handling_func, (button1, ...)) to the func argument in Button_.add_handler()."""
 
-    def handler(event, *args, **kwargs):
-        if event.button in buttons:
+    def handler(self, event, *args, **kwargs):
+        if event.button in buttons and event.widget == self:
+            if self_arg:
+                args = [self] + list(args)
             if event_arg:
                 args = [event] + list(args)
             func(*args, **kwargs)

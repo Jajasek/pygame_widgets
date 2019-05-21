@@ -1,11 +1,13 @@
-import pygame_widgets.widget as W
-import pygame_widgets.text as T
+import pygame_widgets.widgets.widget as W
+import pygame_widgets.widgets.text as T
 import pygame as pg
 import pygame_widgets.constants.private as CONST
 from pygame_widgets.constants.public import *
 
 
-class Button_(W.Widget_):
+class _Button(W._Widget):
+    """Virtual base widget, which adds the button functionality. Cannot be instanced."""
+
     def __init__(self, master, topleft, size, **kwargs):
         updated = kwargs.copy()
         updated[CONST.SUPER] = True
@@ -51,15 +53,17 @@ class Button_(W.Widget_):
                 self._post_event(pg.event.Event(E_BUTTON_MOUSEOUTSIDE, pos=event.pos))
 
 
-class Button(Button_, T.Label):
+class Button(_Button, T.Label):
+    """Standart button. 1-line label that reacts to mouse events."""
+
     def __init__(self, master, topleft=(0, 0), size=(1, 1), **kwargs):
         updated = kwargs.copy()
         updated[CONST.SUPER] = True
         super().__init__(master, topleft, size, **updated)
         self.appearance = 'normal'
-        self.background = self.bg_normal = CONST.DEFAULT.bg_normal
-        self.bg_mouseover = CONST.DEFAULT.bg_mouseover
-        self.bg_pressed = CONST.DEFAULT.bg_pressed
+        self.background = self.bg_normal = CONST.DEFAULT.BUTTON.bg_normal
+        self.bg_mouseover = CONST.DEFAULT.BUTTON.bg_mouseover
+        self.bg_pressed = CONST.DEFAULT.BUTTON.bg_pressed
 
         self.add_handler(MOUSEBUTTONDOWN, self._mouseover_check, self_arg=False, call_if_handled_by_children=True)
         self.add_handler(MOUSEBUTTONUP, self._mouseover_check, self_arg=False, call_if_handled_by_children=True)
@@ -97,9 +101,6 @@ class Button(Button_, T.Label):
         self._generate_surf()
         if self.my_surf.get_size() != self.master_rect.size:
             self.move_resize(resize=self.my_surf.get_size(), resize_rel=False)
-            """self.disappear()
-            self.master_rect.size = self.my_surf.get_size()
-            self._create_subsurface()"""
         else:
             self.appear()
 
@@ -114,7 +115,7 @@ class Button(Button_, T.Label):
                     update = True
             if update:
                 self._mouseover_update()
-            T.Text_._set_update(self, old, **kwargs)
+            T._Text._set_update(self, old, **kwargs)
 
     def _set_event(self, old=None, **kwargs):
         """Places events on the queue based on changed attributes.

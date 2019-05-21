@@ -1,11 +1,12 @@
 print("pygame_widgets init")
 
-import pygame as pygame
-from pygame_widgets.widget import *
-from pygame_widgets.holder import *
-from pygame_widgets.text import *
-from pygame_widgets.button import *
-from pygame_widgets.image import *
+import pygame
+pygame.init()
+from pygame_widgets.widgets.widget import *
+from pygame_widgets.widgets.holder import *
+from pygame_widgets.widgets.text import *
+from pygame_widgets.widgets.button import *
+from pygame_widgets.widgets.image import *
 from pygame_widgets.constants.public import *
 
 print("pygame_widgets initialised")

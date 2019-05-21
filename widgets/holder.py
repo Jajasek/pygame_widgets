@@ -1,4 +1,4 @@
-import pygame_widgets.widget as W
+import pygame_widgets.widgets.widget as W
 import pygame as pg
 import pygame_widgets.constants.private as CONST
 from pygame_widgets.constants.public import *
@@ -51,7 +51,7 @@ class RowLayout:
                     output[i] = pos if self.position[i][1] in "topleft" else pos - self.size[i]
                 else:
                     raise AttributeError("The refered layout does not have the same Master.")
-            elif isinstance(object, W.Widget_):
+            elif isinstance(object, W._Widget):
                 if self.master == object.master:
                     pos = object.surface.get_offset()[i]
                     pos = pos + distance if self.position[i][3] in "topleft" else \
@@ -97,7 +97,7 @@ class RowLayout:
         self.master.add_update()
 
 
-class Holder(W.Widget_):
+class Holder(W._Widget):
     """Transparent widget, which can hold other widgets and organize their positions and sizes."""
 
     def __init__(self, master, topleft=(0, 0), size=(1, 1), **kwargs):
@@ -106,8 +106,17 @@ class Holder(W.Widget_):
         super().__init__(master, topleft, size, **updated)
         self.pub_arg_dict['Holder_attr'] = ['color']
         self.layouts = list()
-        self.color = [0, 255, 0, 0]
+        self.color = THECOLORS['transparent']
         self._safe_init(**kwargs)
+
+    def _set_event(self, old=None, **kwargs):
+        """Places events on the queue based on changed attributes.
+        Private."""
+
+        if old is None:
+            old = dict()
+        for name, value in kwargs.items():
+            self._post_event(pg.event.Event(E_HOLDER_ATTR, name=name, new=value, old=old[name] if name in old else None))
 
     def _generate_surf(self):
         """Generates new surface of appearance.
