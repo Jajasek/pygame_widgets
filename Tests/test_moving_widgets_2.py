@@ -15,12 +15,12 @@ def zmena_okna(self):
     self.add_update(self.surface.get_rect())
 
 
-def Pripojeni(event, self):
+def Pripojeni(self, event):
     (self.disconnect() if self.connected else self.reconnect()) if event.key == K_c else None
     print('Pripojeni')
 
 
-def Objeveni(event, self):
+def Objeveni(self, event):
     if event.key != K_a:
         return
     if self.attributes.onscreen:
@@ -30,7 +30,7 @@ def Objeveni(event, self):
     self.attributes.onscreen = not self.attributes.onscreen
 
 
-def Pohyb(event, self, btn, rel):
+def Pohyb(self, event, btn, rel):
     print(f'moving {self}')
     try:
         b = event.buttons[btn]

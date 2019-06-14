@@ -2,7 +2,10 @@ import pygame as pg
 from pygame_widgets.auxiliary.attributes import Attributes
 from pygame_widgets.auxiliary.handler import Handler
 import pygame_widgets.constants.private as CONST
-from pygame_widgets.constants.public import *
+from pygame_widgets.constants import *
+
+
+__all__ = ['Window']
 
 
 class _Master:

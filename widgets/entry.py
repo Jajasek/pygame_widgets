@@ -1,7 +1,10 @@
 import pygame_widgets.widgets.button as B
 import pygame_widgets.widgets.image as I
 import pygame_widgets.constants.private as CONST
-from pygame_widgets.constants.public import *
+from pygame_widgets.constants import *
+
+
+__all__ = ['Entry']
 
 
 class _Cursor(I.Image):
@@ -16,7 +19,7 @@ class _Cursor(I.Image):
 
 # TODO: create the entry widget
 class Entry(B.Button):
-    """1-line text widget you can write into."""
+    """1-line text widget user can write into."""
 
     def __init__(self, master, topleft=(0, 0), size=(1, 1), **kwargs):
         updated = kwargs.copy()

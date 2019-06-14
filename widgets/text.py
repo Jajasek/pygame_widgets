@@ -1,8 +1,11 @@
 import pygame_widgets.widgets.widget as W
 import pygame as pg
 import pygame_widgets.constants.private as CONST
-from pygame_widgets.constants.public import *
+from pygame_widgets.constants import *
 pg.font.init()
+
+
+__all__ = ['Label']
 
 
 class _Text(W._Widget):

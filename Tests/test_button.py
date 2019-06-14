@@ -1,5 +1,5 @@
 import pygame_widgets
-from pygame_widgets.constants.public import *
+from pygame_widgets.constants import *
 
 
 def Zmacknuti(event, okno):

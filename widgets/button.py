@@ -2,7 +2,10 @@ import pygame_widgets.widgets.widget as W
 import pygame_widgets.widgets.text as T
 import pygame as pg
 import pygame_widgets.constants.private as CONST
-from pygame_widgets.constants.public import *
+from pygame_widgets.constants import *
+
+
+__all__ = ['Button']
 
 
 class _Button(W._Widget):

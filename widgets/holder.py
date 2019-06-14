@@ -1,10 +1,13 @@
 import pygame_widgets.widgets.widget as W
 import pygame as pg
 import pygame_widgets.constants.private as CONST
-from pygame_widgets.constants.public import *
+from pygame_widgets.constants import *
 
 
-class RowLayout:
+__all__ = ['Holder']
+
+
+class _RowLayout:
     def __init__(self, master, vertical=True, size=(0, 0),
                  relative_position=((0, "left", None, "left"), (0, "top", None, "top")), identical_cells=True):
         # (x, side of self, widget or layout to compare, side of it)
@@ -44,7 +47,7 @@ class RowLayout:
             if object is None:
                 output[i] = distance if self.position[i][1] in "topleft" \
                     else distance - self.size[i]
-            elif isinstance(object, RowLayout):
+            elif isinstance(object, _RowLayout):
                 if self.master == object.master:
                     pos = object.position_in_master(*cycle_handling, self)[i]
                     pos = pos + distance if self.position[i][3] in "topleft" else pos + object.size[i] + distance
@@ -132,6 +135,6 @@ class Holder(W._Widget):
         for widget in widgets:
             if (widget not in self.children) or (widget in sum([l.widgets for l in self.layouts], [])):
                 w.remove(widget)
-        layout = RowLayout(self, vertical, size, relative_position, identical_cells)
+        layout = _RowLayout(self, vertical, size, relative_position, identical_cells)
         layout.add_widgets(*w)
         return layout

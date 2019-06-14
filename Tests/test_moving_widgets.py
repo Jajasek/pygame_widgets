@@ -3,6 +3,7 @@ import text
 import pygame
 import holder
 from pygame.colordict import THECOLORS
+from pygame.locals import *
 pygame.init()
 
 size = (600, 500)
