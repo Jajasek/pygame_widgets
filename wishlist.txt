@@ -1,2 +1,3 @@
 Allow multiple window instances, that would not argue, but only one will be displayed.
     It would be possible to switch between already created windows.
+widget.copy()

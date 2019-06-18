@@ -29,10 +29,22 @@ class DEFAULT:
         font = 'calibri'
         font_size = 16
 
+        class Alignment:
+            x = 1
+            y = 1
+
     class BUTTON:
         bg_normal = button_bg(THECOLORS['gray80'], THECOLORS['gray65'])
         bg_mouseover = button_bg(THECOLORS['lightblue1'], THECOLORS['blue'])
         bg_pressed = button_bg(THECOLORS['lightblue3'], THECOLORS['blue'])
+
+    class ENTRY:
+        class Boundary_space:
+            left = 6
+            right = 6
+
+        class Cursor:
+            color = THECOLORS['black']
 
 
 SUPER = 's'  # kwarg used to detect if the class is initialising as super() or not

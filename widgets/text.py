@@ -27,8 +27,8 @@ class _Text(W._Widget):
         self.background = CONST.DEFAULT.TEXT.bg_color
         self.smooth = True
         self.text = "Hello World!"
-        self.alignment_x = 1
-        self.alignment_y = 1
+        self.alignment_x = CONST.DEFAULT.TEXT.Alignment.x
+        self.alignment_y = CONST.DEFAULT.TEXT.Alignment.y
 
         self.pub_arg_dict["Text_new_font"] = ["font_name", "font_size"]
         self.pub_arg_dict["Text_set_font"] = ["bold", "italic", "underlined"]
@@ -129,5 +129,5 @@ class Label(_Text):
             old = dict()
         for name, value in kwargs.items():
             # noinspection PyArgumentList
-            self._post_event(pg.event.Event(E_LABEL_TEXT if name == 'text' else E_LABEL_ATTR, name=name, new=value,
-                                            old=old[name] if name in old else None))
+            self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_LABEL_TEXT if name == 'text' else E_LABEL_ATTR,
+                                            name=name, new=value, old=old[name] if name in old else None))

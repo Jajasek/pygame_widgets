@@ -29,14 +29,14 @@ class _Button(W._Widget):
         if self.get_abs_surf_rect().collidepoint(event.pos):
             if event.type == MOUSEBUTTONDOWN:
                 # noinspection PyArgumentList
-                self._post_event(pg.event.Event(E_BUTTON_PRESSED, button=event.button, pos=event.pos))
+                self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_BUTTON_PRESSED, button=event.button, pos=event.pos))
                 self.pressed.add(event.button)
             if event.type == MOUSEBUTTONUP:
                 # noinspection PyArgumentList
-                self._post_event(pg.event.Event(E_BUTTON_RELEASED, button=event.button, pos=event.pos))
+                self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_BUTTON_RELEASED, button=event.button, pos=event.pos))
                 if event.button in self.pressed:
                     # noinspection PyArgumentList
-                    self._post_event(pg.event.Event(E_BUTTON_BUMPED, button=event.button, pos=event.pos))
+                    self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_BUTTON_BUMPED, button=event.button, pos=event.pos))
         if event.type == MOUSEBUTTONUP and event.button in self.pressed:
             self.pressed.remove(event.button)
 
@@ -46,14 +46,14 @@ class _Button(W._Widget):
         Private."""
 
         if self.get_abs_surf_rect().collidepoint(event.pos) and not self.mouseover:
-            self._post_event(pg.event.Event(E_BUTTON_MOUSEOVER, pos=event.pos))
+            self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_BUTTON_MOUSEOVER, pos=event.pos))
             self.mouseover = True
         elif not self.get_abs_surf_rect().collidepoint(event.pos) and self.mouseover:
             if self.pressed:
-                self._post_event(pg.event.Event(E_BUTTON_SLIDED, buttons=self.pressed))
+                self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_BUTTON_SLIDED, buttons=self.pressed))
                 self.pressed = set()
             else:
-                self._post_event(pg.event.Event(E_BUTTON_MOUSEOUTSIDE, pos=event.pos))
+                self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_BUTTON_MOUSEOUTSIDE, pos=event.pos))
 
 
 class Button(_Button, T.Label):
@@ -128,6 +128,7 @@ class Button(_Button, T.Label):
             old = dict()
         for name, value in kwargs.items():
             # noinspection PyArgumentList
-            self._post_event(pg.event.Event(E_BUTTON_APPEARANCE if name in self.pub_arg_dict['Button_appearance'] else
-                                            E_BUTTON_ATTR, name=name, new=value, old=old[name] if name in old else None))
+            self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_BUTTON_APPEARANCE if name in
+                                            self.pub_arg_dict['Button_appearance'] else E_BUTTON_ATTR, name=name,
+                                            new=value, old=old[name] if name in old else None))
 

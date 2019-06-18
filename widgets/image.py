@@ -33,7 +33,7 @@ class Image(W._Widget):
         if old is None:
             old = dict()
         for name, value in kwargs.items():
-            self._post_event(pg.event.Event(E_IMAGE_APPEARANCE, name=name, new=value,
+            self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_IMAGE_APPEARANCE, name=name, new=value,
                                             old=old[name] if name in old else None))
 
     def _generate_surf(self):

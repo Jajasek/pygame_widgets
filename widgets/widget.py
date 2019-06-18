@@ -8,6 +8,16 @@ from pygame_widgets.constants import *
 __all__ = ['Window']
 
 
+class _Caller(list):
+    """A list of functions that can call all of them  in order.
+    Used to initialise child widgets of a compound widget."""
+
+    def __call__(self):
+        for func in self:
+            if callable(func):
+                func()
+
+
 class _Master:
     """Class for methods present in Window and Widget. If instanced or subclassed, might raise AttributeError."""
 
@@ -129,15 +139,14 @@ class _Master:
 
         output = [False] * len(events)
         for index, e in enumerate(events):
-            try:
-                if e.widget == self and filter:
-                    continue
-            except AttributeError:
-                pass
-
-            if e.type in self.no_receive_events:
+            if hasattr(e, 'widget') and e.widget == self and filter:
                 continue
-            if e.type not in self.no_send_events:
+
+            if not hasattr(e, 'ID'):
+                e.ID = e.type
+            if e.ID in self.no_receive_events or e.ID in self.no_receive_events:
+                continue
+            if e.ID not in self.no_send_events:
                 try:
                     grab_exists = bool(self.grab[e.type])
                 except KeyError:
@@ -150,13 +159,13 @@ class _Master:
                         output[index] = child.handle_events(e)[0] or output[index]
 
             try:
-                if not self.handlers[e.type]:
+                if not self.handlers[e.ID]:
                     continue
             except KeyError:
                 continue
 
             out = False
-            for handler in self.handlers[e.type]:
+            for handler in self.handlers[e.ID]:
                 if handler.if_handled or not output[index]:
                     handler(e, self)
                     out = True
@@ -168,7 +177,7 @@ class _Master:
         by use of Window.handle_events(), it will be automatically filtered out).
         Private."""
 
-        if event.type not in CONST.PYGAME_EVENTS:
+        if event.type == PYGAME_WIDGETS:
             event.widget = self
             self.handle_events(event, filter=False)
         pg.event.post(event)
@@ -391,7 +400,7 @@ class Window(_Master):
         if old is None:
             old = dict()
         for name, value in kwargs.items():
-            self._post_event(pg.event.Event(E_WINDOW_ATTR, name=name, new=value, old=old[name] if name in old else None))
+            self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_WINDOW_ATTR, name=name, new=value, old=old[name] if name in old else None))
 
 
 class _Widget(_Master):
@@ -406,6 +415,7 @@ class _Widget(_Master):
         self.auto_res = False
         self.visible = True
         self.connected = True
+        self._child_init = _Caller()
         self.master_rect = Rect(topleft, size)
         self._create_subsurface()
         self.master.children.append(self)
@@ -480,6 +490,7 @@ class _Widget(_Master):
             self.master_rect.size = self.my_surf.get_size()
             self._create_subsurface()
         self.appear()
+        self._child_init()
 
     def appear(self):
         """Method used to draw widget on the screen properly.
@@ -587,7 +598,8 @@ class _Widget(_Master):
         if old is None:
             old = dict()
         for name, value in kwargs.items():
-            self._post_event(pg.event.Event(E_WIDGET_ATTR, name=name, new=value, old=old[name] if name in old else None))
+            self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_WIDGET_ATTR, name=name, new=value,
+                                            old=old[name] if name in old else None))
 
     def move_resize(self, move=(0, 0), move_level: int = 'rel', resize=(1, 1), resize_rel=True, update_surf=True):
         """Moves its subsurface inside master's surface to the given position and resizes it.
