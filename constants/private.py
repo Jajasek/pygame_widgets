@@ -34,6 +34,9 @@ class DEFAULT:
             x = 1
             y = 1
 
+    class IMAGE:
+        img = THECOLORS['white']
+
     class BUTTON:
         bg_normal = button_bg(THECOLORS['gray80'], THECOLORS['gray65'])
         bg_mouseover = button_bg(THECOLORS['lightblue1'], THECOLORS['blue'])

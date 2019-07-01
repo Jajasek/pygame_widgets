@@ -44,9 +44,9 @@ class _Master:
     def __str__(self):
         return f'<{str(self.__class__)[8:-2]} object, ID {self.ID}>'
 
-    def _on_screen(self, rect=None):
+    def on_screen(self, rect=None):
         """Returns True if there is its image on current window, otherwise False.
-        Private."""
+        Public."""
 
         if not rect:
             rect = self.get_abs_master_rect()
@@ -194,7 +194,7 @@ class _Master:
         Can be called by master or child.
         Private."""
 
-        if not self.visible or not self._on_screen():
+        if not self.visible or not self.on_screen():
             return
         if rect is None:
             rect = self.surface.get_rect()
@@ -315,7 +315,7 @@ class Window(_Master):
         """Adds update rect to the to_update list.
         Public."""
 
-        if self._on_screen(rect):
+        if self.on_screen(rect):
             self.to_update.append(self.surface.get_rect().clip(rect))
             return True
         return False
@@ -465,7 +465,7 @@ class _Widget(_Master):
         """Tries to create a subsurface and actualise topleft.
         Private."""
 
-        if self._on_screen():
+        if self.on_screen():
             rect = self.master.surface.get_rect().clip(
                 self.master_rect.move(*[self.master.topleft[i] for i in range(2)]))
             if rect.size != (0, 0):
@@ -496,14 +496,14 @@ class _Widget(_Master):
         """Method used to draw widget on the screen properly.
         Public."""
 
-        if self.connected and self._on_screen() and self.visible:
+        if self.connected and self.on_screen() and self.visible:
             self.get_abs_master_path()[0].blit(self.get_abs_master_rect())
 
     def disappear(self):
         """Method used to redraw widget by other widgets. It could cause problems if not used carefully.
         Private."""
 
-        if self.connected and self._on_screen():
+        if self.connected and self.on_screen():
             path = self.get_abs_master_path()
             path[0].redraw_child_reccurent(self.get_abs_master_rect().clip(pg.display.get_surface().get_rect()),
                                            path[1:] + [self])
@@ -517,7 +517,7 @@ class _Widget(_Master):
 
         if not rect:
             rect = self.get_abs_master_rect()
-        if self.get_abs_master_rect().colliderect(rect) and self._on_screen(rect):
+        if self.get_abs_master_rect().colliderect(rect) and self.on_screen(rect):
             return self.master.add_update(self.get_abs_master_rect().clip(rect))
         return False
 

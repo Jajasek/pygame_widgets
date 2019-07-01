@@ -11,19 +11,12 @@ class Image(W._Widget):
     """Widget that constantly displays given surface or color. When resized, the image will be sticked in topleft
     corner."""
 
-    def __init__(self, master, topleft=(0, 0), size=(1, 1) , image_or_color = THECOLORS['white'], **kwargs):
+    def __init__(self, master, topleft=(0, 0), size=(1, 1), **kwargs):
         updated = kwargs.copy()
         updated[CONST.SUPER] = True
-        if isinstance(image_or_color, pg.Surface):
-            size = image_or_color.get_size()
-            image = image_or_color
-            image.convert()
-        else:
-            image = pg.Surface(size, SRCALPHA)
-            image.fill(image_or_color)
         super().__init__(master, topleft, size, **updated)
         self.pub_arg_dict['Image_set'] = ['image']
-        self.image = image
+        self.image = CONST.DEFAULT.IMAGE.img
         self._safe_init(**kwargs)
 
     def _set_event(self, old=None, **kwargs):
@@ -37,4 +30,11 @@ class Image(W._Widget):
                                             old=old[name] if name in old else None))
 
     def _generate_surf(self):
-        self.my_surf = self.image.copy()
+        if callable(self.image):
+            self.my_surf = self.image(self.master_rect.size)
+        elif isinstance(self.image, pg.Surface):
+            self.my_surf = self.image.copy()
+        else:
+            self.my_surf = pg.Surface(self.master_rect.size, SRCALPHA)
+            self.my_surf.fill(self.image)
+        self.my_surf.convert()
