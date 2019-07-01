@@ -21,7 +21,7 @@ class Image(W._Widget):
         else:
             image = pg.Surface(size, SRCALPHA)
             image.fill(image_or_color)
-        super().__init__(master, Rect(topleft, size), **updated)
+        super().__init__(master, topleft, size, **updated)
         self.pub_arg_dict['Image_set'] = ['image']
         self.image = image
         self._safe_init(**kwargs)

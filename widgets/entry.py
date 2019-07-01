@@ -27,11 +27,14 @@ class Entry(B.Button):
         updated = kwargs.copy()
         updated[CONST.SUPER] = True
         super().__init__(master, topleft, size, **updated)
-        self._child_init.append(self.__child_init)
         self.boundary_space_l = CONST.DEFAULT.ENTRY.Boundary_space.left
         self.boundary_space_r = CONST.DEFAULT.ENTRY.Boundary_space.right
+        self.background = self.bg_normal = self.bg_mouseover = self.bg_pressed = CONST.DEFAULT.ENTRY.bg
 
         self.intervals = list()
+
+        self.pub_arg_dict['special'].extend(['bg_uniform'])
+        self._child_init.append(self.__child_init)
         self._safe_init(**kwargs)
 
     def __child_init(self):
@@ -40,6 +43,12 @@ class Entry(B.Button):
         self.w_text = T.Label(self.w_visible_area, auto_res=True)
         self.w_highlight = T.Label(self.w_visible_area, auto_res=True)
         self.w_cursor = _Cursor(self.w_visible_area, (0, 0), (1, 1))
+
+    def _set_special(self, name, value):
+        super()._set_special(name, value)
+        if name == 'bg_uniform':
+            self.bg_normal = self.bg_pressed = self.bg_mouseover = value
+            self._mouseover_update()
 
     def _find_intervals(self):
         # noinspection PyTypeChecker

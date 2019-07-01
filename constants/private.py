@@ -1,5 +1,5 @@
 from pygame_widgets.constants.public import THECOLORS, SRCALPHA
-from pygame import Surface
+from pygame import Surface, cursors
 
 
 def button_bg(fill, edge):
@@ -21,13 +21,14 @@ def button_bg(fill, edge):
 class DEFAULT:
     class WINDOW:
         fps = 25
-        color = THECOLORS['white']
+        color = THECOLORS['gray90']
 
     class TEXT:
         bg_color = THECOLORS['transparent']
         font_color = THECOLORS['black']
         font = 'calibri'
         font_size = 16
+        text = ""
 
         class Alignment:
             x = 1
@@ -37,8 +38,11 @@ class DEFAULT:
         bg_normal = button_bg(THECOLORS['gray80'], THECOLORS['gray65'])
         bg_mouseover = button_bg(THECOLORS['lightblue1'], THECOLORS['blue'])
         bg_pressed = button_bg(THECOLORS['lightblue3'], THECOLORS['blue'])
+        cursor_normal = cursor_mouseover = cursor_pressed = cursors.arrow
 
     class ENTRY:
+        bg = button_bg(THECOLORS['white'], THECOLORS['blue'])
+
         class Boundary_space:
             left = 6
             right = 6

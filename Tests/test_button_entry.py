@@ -18,13 +18,14 @@ def Pretahnuti(self, event):
 Okno = pygame_widgets.Window((500, 300), RESIZABLE)
 Okno.attributes.size1 = (500, 400)
 Okno.attributes.size2 = (300, 300)
-Tlaco2 = pygame_widgets.Button(Okno, size=(100, 20), text='Pretahni me')
+Tlaco2 = pygame_widgets.Button(Okno, topleft=(0, 200), size=(100, 20), text='Pretahni me')
 Tlaco2.attributes.drag = False
 Tlaco2.add_handler(E_BUTTON_PRESSED, button_wrapper(PretahnutiSS, self_arg=True), *Args(True))
 Tlaco2.add_handler(E_BUTTON_RELEASED, button_wrapper(PretahnutiSS, self_arg=True), *Args(False))
 Tlaco2.add_handler(MOUSEMOTION, Pretahnuti)
 Tlaco = pygame_widgets.Button(Okno, (200, 150), (100, 20), text='Zmackni me')
 Tlaco.add_handler(E_BUTTON_BUMPED, button_wrapper(Zmacknuti, (BUTTON_LEFT, BUTTON_RIGHT), event_arg=True), [Okno])
+Textove_pole = pygame_widgets.Entry(Okno, (100, 100), (200, 20))
 
 while True:
     events = pygame_widgets.pygame.event.get()

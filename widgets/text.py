@@ -26,7 +26,7 @@ class _Text(W._Widget):
         self.font_color = CONST.DEFAULT.TEXT.font_color
         self.background = CONST.DEFAULT.TEXT.bg_color
         self.smooth = True
-        self.text = "Hello World!"
+        self.text = CONST.DEFAULT.TEXT.text
         self.alignment_x = CONST.DEFAULT.TEXT.Alignment.x
         self.alignment_y = CONST.DEFAULT.TEXT.Alignment.y
 
