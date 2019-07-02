@@ -16,7 +16,7 @@ class Image(W._Widget):
         updated[CONST.SUPER] = True
         super().__init__(master, topleft, size, **updated)
         self.pub_arg_dict['Image_set'] = ['image']
-        self.image = CONST.DEFAULT.IMAGE.img
+        self.image = CONST.DEFAULT.IMAGE.bg
         self._safe_init(**kwargs)
 
     def _set_event(self, old=None, **kwargs):
