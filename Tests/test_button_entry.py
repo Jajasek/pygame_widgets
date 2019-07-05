@@ -23,6 +23,7 @@ Tlaco2.attributes.drag = False
 Tlaco2.add_handler(E_BUTTON_PRESSED, button_wrapper(PretahnutiSS, self_arg=True), *Args(True))
 Tlaco2.add_handler(E_BUTTON_RELEASED, button_wrapper(PretahnutiSS, self_arg=True), *Args(False))
 Tlaco2.add_handler(MOUSEMOTION, Pretahnuti)
+Tlaco2.handlers[MOUSEMOTION] = [Tlaco2.handlers[MOUSEMOTION][-1]] + Tlaco2.handlers[MOUSEMOTION][:-1]
 Tlaco = pygame_widgets.Button(Okno, (200, 150), (100, 20), text='Zmackni me')
 Tlaco.add_handler(E_BUTTON_BUMPED, button_wrapper(Zmacknuti, (BUTTON_LEFT, BUTTON_RIGHT), event_arg=True), [Okno])
 Textove_pole = pygame_widgets.Entry(Okno, (100, 100), (200, 20))

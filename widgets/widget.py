@@ -1,9 +1,10 @@
 import pygame as pg
 from pygame_widgets.auxiliary.attributes import Attributes
 from pygame_widgets.auxiliary.handler import Handler
+from pygame_widgets.auxiliary.cursors import set as set_cursor
 import pygame_widgets.constants.private as CONST
 from pygame_widgets.constants import *
-import pygame_widgets as pw
+from pygame_widgets.auxiliary.event_mode import get_mode
 
 
 __all__ = ['Window']
@@ -42,8 +43,22 @@ class _Master:
         self.dont_receive_events = set()
         self.dont_send_events = set()
 
+        self.add_handler(MOUSEMOTION, self.change_cursor, self_arg=False)
+
     def __str__(self):
         return f'<{str(self.__class__)[8:-2]} object, ID {self.ID}>'
+
+    def change_cursor(self, event):
+        if self.get_abs_master_rect().collidepoint(event.pos):
+            for child in self.children:
+                if child.get_abs_master_rect().collidepoint(event.pos):
+                    return
+            if isinstance(self, _Widget):
+                siblings = self.master.children
+                for sibling in siblings[siblings.index(self) + 1:]:
+                    if sibling.get_abs_master_rect().collidepoint(event.pos):
+                        return
+            set_cursor(*self.cursor)
 
     def on_screen(self, rect=None):
         """Returns True if there is its image on current window, otherwise False.
@@ -201,7 +216,7 @@ class _Master:
         by use of Window.handle_events(), it will be automatically filtered out).
         Private."""
 
-        if not pw.get_mode():
+        if not get_mode():
             return
         if event.type == PYGAME_WIDGETS:
             event.widget = self

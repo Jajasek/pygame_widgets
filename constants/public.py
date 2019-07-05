@@ -223,7 +223,8 @@ def Args(*args, **kwargs):
 
 def button_wrapper(func, buttons=(BUTTON_LEFT,), self_arg=False, event_arg=False):
     """When adding handler for button click event, this wrapper calls the handling function only for specified mouse
-    buttons. Pass button_wrapper(handling_func, (button1, ...)) to the func argument in Button_.add_handler()."""
+    buttons. Pass button_wrapper(handling_func, (button1, ...)) to the func argument in Button_.add_handler().
+    self_arg and event_arg must be True."""
 
     def handler(self, event, *args, **kwargs):
         if event.button in buttons and event.widget == self:

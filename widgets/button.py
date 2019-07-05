@@ -1,5 +1,6 @@
 import pygame_widgets.widgets.widget as W
 import pygame_widgets.widgets.text as T
+from pygame_widgets.auxiliary import cursors
 import pygame as pg
 import pygame_widgets.constants.private as CONST
 from pygame_widgets.constants import *
@@ -67,8 +68,7 @@ class Button(_Button, T.Label):
         self.background = self.bg_normal = CONST.DEFAULT.BUTTON.bg_normal
         self.bg_mouseover = CONST.DEFAULT.BUTTON.bg_mouseover
         self.bg_pressed = CONST.DEFAULT.BUTTON.bg_pressed
-        self.cursor = self.cursor_normal = CONST.DEFAULT.BUTTON.cursor_normal
-        self.cursor_mouseover = CONST.DEFAULT.BUTTON.cursor_mouseover
+        self.cursor = self.cursor_mouseover = CONST.DEFAULT.BUTTON.cursor_mouseover
         self.cursor_pressed = CONST.DEFAULT.BUTTON.cursor_pressed
 
         self.add_handler(MOUSEBUTTONDOWN, self._mouseover_check, self_arg=False)
@@ -104,14 +104,14 @@ class Button(_Button, T.Label):
 
         if self.appearance == 'normal':
             self.background = self.bg_normal
-            self.cursor = self.cursor_normal
+            self.cursor = self.cursor_mouseover
         if self.appearance == 'mouseover':
             self.background = self.bg_mouseover
             self.cursor = self.cursor_mouseover
         if self.appearance == 'pressed':
             self.background = self.bg_pressed
             self.cursor = self.cursor_pressed
-        pg.mouse.set_cursor(*self.cursor)
+        cursors.set(*self.cursor)
         self._generate_surf()
         if self.my_surf.get_size() != self.master_rect.size:
             self.move_resize(resize=self.my_surf.get_size(), resize_rel=False)

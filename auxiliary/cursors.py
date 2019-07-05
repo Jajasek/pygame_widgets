@@ -1,5 +1,6 @@
 # TODO: fix the cursor displaying
 import pygame.cursors as _cursors
+import pygame.mouse as _mouse
 # from pygame.cursors import *
 
 
@@ -30,7 +31,25 @@ _hand_strings = ['     XX                 ',
 
 
 def compile(strings, hotspot=(1, 1), black='X', white='.', xor='o'):
+    """Creates cursor data needed by cursors.set() from a sequence of same-lenght strings.
+    Public."""
+
     return ((len(strings[0]), len(strings)), hotspot, *_cursors.compile(strings, black, white, xor))
+
+
+def set(size, hotspot, xormasks, andmasks):
+    """Sets new cursor image. Predefined cursors are tuples containing the 4 needed arguments, so you can type
+    cursors.set(*cursors.arrow). Custom cursors must be first compiled by cursors.compile() to create the needed args.
+    Public."""
+
+    _mouse.set_cursor(size, hotspot, xormasks, andmasks)
+
+
+def get():
+    """Gets the current cursor settings.
+    Public."""
+
+    return _mouse.get_cursor()
 
 
 load_xbm = _cursors.load_xbm
