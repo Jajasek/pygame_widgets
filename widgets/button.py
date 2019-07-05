@@ -71,9 +71,9 @@ class Button(_Button, T.Label):
         self.cursor_mouseover = CONST.DEFAULT.BUTTON.cursor_mouseover
         self.cursor_pressed = CONST.DEFAULT.BUTTON.cursor_pressed
 
-        self.add_handler(MOUSEBUTTONDOWN, self._mouseover_check, self_arg=False, call_if_handled_by_children=True)
-        self.add_handler(MOUSEBUTTONUP, self._mouseover_check, self_arg=False, call_if_handled_by_children=True)
-        self.add_handler(MOUSEMOTION, self._mouseover_check, self_arg=False, call_if_handled_by_children=True)
+        self.add_handler(MOUSEBUTTONDOWN, self._mouseover_check, self_arg=False)
+        self.add_handler(MOUSEBUTTONUP, self._mouseover_check, self_arg=False)
+        self.add_handler(MOUSEMOTION, self._mouseover_check, self_arg=False)
 
         self.pub_arg_dict['Button_appearance'] = ['bg_normal', 'bg_mouseover', 'bg_pressed',
                                                   'cursor_normal', 'cursor_mouseover', 'cursor_pressed']

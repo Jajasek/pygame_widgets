@@ -3,6 +3,7 @@ from pygame_widgets.auxiliary.attributes import Attributes
 from pygame_widgets.auxiliary.handler import Handler
 import pygame_widgets.constants.private as CONST
 from pygame_widgets.constants import *
+import pygame_widgets as pw
 
 
 __all__ = ['Window']
@@ -35,11 +36,11 @@ class _Master:
         self.my_surf = None
         self.topleft = (0, 0)
         self.master_rect = Rect(0, 0, 1, 1)
-        self.grab = dict()  # [event_type: [Child, ...]]
-        self.handlers = dict()  # [event_type: [(func, [arg1, ...], include_event_arg, /
-        #                                       call_if_handled_by_children), ...]]
-        self.no_receive_events = set()
-        self.no_send_events = set()
+        self.cursor = CONST.DEFAULT.cursor
+        self.grab = dict()
+        self.handlers = dict()
+        self.dont_receive_events = set()
+        self.dont_send_events = set()
 
     def __str__(self):
         return f'<{str(self.__class__)[8:-2]} object, ID {self.ID}>'
@@ -80,14 +81,13 @@ class _Master:
         if hasattr(self, 'master') and level:
             self.master.remove_grab(event_type, self, level - 1)
 
-    def add_handler(self, event_type, func, args=None, kwargs=None, self_arg=True, event_arg=True,
-                    call_if_handled_by_children=False):
+    def add_handler(self, event_type, func, args=None, kwargs=None, self_arg=True, event_arg=True):
         """Adds handling function with settings.
         Public."""
 
         if event_type not in self.handlers:
             self.handlers[event_type] = list()
-        self.handlers[event_type].append(Handler(func, args, kwargs, self_arg, event_arg, call_if_handled_by_children))
+        self.handlers[event_type].append(Handler(func, args, kwargs, self_arg, event_arg))
 
     def remove_handler(self, event_type, func, args=None, kwargs=None, self_arg=True, event_arg=True):
         """Removes handling function with settings.
@@ -111,31 +111,31 @@ class _Master:
 
     def add_nr_events(self, *args):
         for e in args:
-            self.no_receive_events.add(e)
+            self.dont_receive_events.add(e)
 
     def remove_nr_events(self, *args):
         for e in args:
             try:
-                self.no_receive_events.remove(e)
+                self.dont_receive_events.remove(e)
             except ValueError:
                 pass
 
     def add_ns_events(self, *args):
         for e in args:
-            self.no_send_events.add(e)
+            self.dont_send_events.add(e)
 
     def remove_ns_events(self, *args):
         for e in args:
             try:
-                self.no_send_events.remove(e)
+                self.dont_send_events.remove(e)
             except ValueError:
                 pass
 
-    def handle_events(self, *events, filter=True):
-        """Function for handling events if possible. For every event, if succesfully handled, returns True, otherwise
+    """def handle_events(self, *events, filter=True):
+        Function for handling events if possible. For every event, if succesfully handled, returns True, otherwise
         False. Should be called in Window's instance for every event in event queue, especially for pygame.VIDEORESIZE
         and pygame.QUIT.
-        Public."""
+        Public.
 
         output = [False] * len(events)
         for index, e in enumerate(events):
@@ -144,12 +144,12 @@ class _Master:
 
             if not hasattr(e, 'ID'):
                 e.ID = e.type
-            if e.ID in self.no_receive_events or e.ID in self.no_receive_events:
+            if e.ID in self.dont_receive_events:
                 continue
-            if e.ID not in self.no_send_events:
-                try:
-                    grab_exists = bool(self.grab[e.type])
-                except KeyError:
+            if e.ID not in self.dont_send_events:
+                if e.ID in self.grab:
+                    grab_exists = self.grab[e.ID]
+                else:
                     grab_exists = False
 
                 if grab_exists:
@@ -158,10 +158,10 @@ class _Master:
                     for child in self.children:
                         output[index] = child.handle_events(e)[0] or output[index]
 
-            try:
+            if e.ID in self.handlers:
                 if not self.handlers[e.ID]:
                     continue
-            except KeyError:
+            else:
                 continue
 
             out = False
@@ -170,16 +170,42 @@ class _Master:
                     handler(e, self)
                     out = True
             output[index] = out
-        return output
+        return output"""
+
+    def handle_event(self, event, filter=True):
+        if not hasattr(event, 'ID'):
+            event.ID = event.type
+        if (hasattr(event, 'widget') and event.widget == self and filter) or event.ID in self.dont_receive_events:
+            return
+        if event.ID in self.handlers:
+            for handler in self.handlers[event.ID]:
+                handler(self, event)
+        if event.ID not in self.dont_send_events:
+            if event.ID in self.grab:
+                grab_exists = self.grab[event.ID]
+            else:
+                grab_exists = False
+
+            if grab_exists:
+                self.grab[event.type][-1].handle_event(event)
+            else:
+                for child in self.children:
+                    child.handle_event(event)
+
+    def handle_events(self, *events, filter=True):
+        for event in events:
+            self.handle_event(event, filter)
 
     def _post_event(self, event):
         """Method that posts signed event and immediatelly handles it (when the event gets to the handling process
         by use of Window.handle_events(), it will be automatically filtered out).
         Private."""
 
+        if not pw.get_mode():
+            return
         if event.type == PYGAME_WIDGETS:
             event.widget = self
-            self.handle_events(event, filter=False)
+            self.handle_event(event, filter=False)
         pg.event.post(event)
 
     def kwarg_list(self):
@@ -234,9 +260,9 @@ class Window(_Master):
 
     def __init__(self, resolution=(0, 0), flags=0, depth=0, **kwargs):
         super().__init__()
-        self.add_handler(VIDEORESIZE, self._resize, self_arg=False, call_if_handled_by_children=True)
-        self.add_handler(QUIT, self.quit, self_arg=False, event_arg=False, call_if_handled_by_children=True)
-        self.add_handler(KEYDOWN, self._AltF4, self_arg=False, call_if_handled_by_children=True)
+        self.add_handler(VIDEORESIZE, self._resize, self_arg=False)
+        self.add_handler(QUIT, self.quit, self_arg=False, event_arg=False)
+        self.add_handler(KEYDOWN, self._AltF4, self_arg=False)
         self.min_size = (None, None)
         self.max_size = (None, None)
         self.bg_color = CONST.DEFAULT.WINDOW.color

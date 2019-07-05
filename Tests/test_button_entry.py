@@ -27,12 +27,13 @@ Tlaco = pygame_widgets.Button(Okno, (200, 150), (100, 20), text='Zmackni me')
 Tlaco.add_handler(E_BUTTON_BUMPED, button_wrapper(Zmacknuti, (BUTTON_LEFT, BUTTON_RIGHT), event_arg=True), [Okno])
 Textove_pole = pygame_widgets.Entry(Okno, (100, 100), (200, 20))
 cursor = pygame_widgets.pygame.cursors.compile(pygame_widgets.pygame.cursors.textmarker_strings)
-pygame_widgets.pygame.mouse.set_cursor((8, 16), (0, 0), *cursor)
+pygame_widgets.pygame.mouse.set_cursor((8, 16), (4, 8), *cursor)
 
 while True:
     events = pygame_widgets.pygame.event.get()
     if events:
         pass
         # print(*events, sep='\n')
-    Okno.handle_events(*events)
+    for e in events:
+        Okno.handle_event(e)
     Okno.update_display()

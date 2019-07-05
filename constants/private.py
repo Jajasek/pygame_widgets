@@ -28,6 +28,8 @@ def frame(fill, edge):
 
 
 class DEFAULT:
+    cursor = cursors.arrow
+
     class WINDOW:
         fps = 25
         color = THECOLORS['gray90']
