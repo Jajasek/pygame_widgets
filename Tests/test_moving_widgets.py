@@ -17,8 +17,8 @@ Label = text.Label(Widget, (100, 50), (200, 10), font_color=(255, 255, 255), smo
                    text="Hello World", font_size=30, bold=True, auto_res=True, alignment_x=2)
 Label2 = text.Label(Widget, (50, 20), (200, 30), font_color=(255, 0, 0), text="This is a subsubwidget of okno", bg_color=THECOLORS['blue1'])
 Label3 = text.Label(Widget, auto_res=True, text="I dont know", font_color=THECOLORS['salmon'])
-LabelHelp = text.Label(okno, (0, 50), auto_res=True, text='T, C: font; Esc, Enter: connection; '
-                                                          'Arrows: font size; else: visibility')
+LabelHelp = text.Label(okno, (0, 50), auto_res=True, text='T, C: _font; Esc, Enter: connection; '
+                                                          'Arrows: _font size; else: visibility')
 Running = True
 pygame.display.flip()
 

@@ -36,11 +36,15 @@ class DEFAULT:
         color = THECOLORS['gray90']
 
     class TEXT:
-        bg_color = THECOLORS['transparent']
+        bg = THECOLORS['transparent']
         font_color = THECOLORS['black']
         font = 'calibri'
         font_size = 16
         text = ""
+        bold = False
+        italic = False
+        underlined = False
+        smooth = True
 
         class Alignment:
             x = 1
@@ -53,15 +57,33 @@ class DEFAULT:
         bg_normal = button_bg(THECOLORS['gray80'], THECOLORS['gray65'])
         bg_mouseover = button_bg(THECOLORS['lightblue1'], THECOLORS['blue'])
         bg_pressed = button_bg(THECOLORS['lightblue3'], THECOLORS['blue'])
-        cursor_mouseover = cursors.tri_right
-        cursor_pressed = cursors.tri_left
+        cursor_mouseover = cursor_pressed = cursors.arrow
 
     class ENTRY:
         bg = frame(THECOLORS['white'], THECOLORS['blue'])
+        cursor = cursors.textmarker
+
+        class Alignment:
+            x = 0
+            y = 1
 
         class Boundary_space:
+            top = 3
             left = 6
+            bottom = 3
             right = 6
+
+        class Text:
+            font_color = THECOLORS['black']
+            highlight_font_color = THECOLORS['white']
+            highlight_bg = THECOLORS['blue']
+            font = 'calibri'
+            font_size = 16
+            bold = False
+            italic = False
+            underlined = False
+            smooth = True
+            text = "Hello World"
 
         class Cursor:
             color = THECOLORS['black']

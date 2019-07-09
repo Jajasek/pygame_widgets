@@ -30,6 +30,9 @@ class Image(W._Widget):
                                             old=old[name] if name in old else None))
 
     def _generate_surf(self):
+        """Generates new surface of appearance.
+        Private."""
+
         if callable(self.image):
             self.my_surf = self.image(self.master_rect.size)
         elif isinstance(self.image, pg.Surface):

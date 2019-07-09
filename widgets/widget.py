@@ -32,7 +32,7 @@ class _Master:
         self.pub_arg_dict = dict()
         self.pub_arg_dict['special'] = []
         self.visible = True
-        self.attributes = Attributes()
+        self.attr = Attributes()
         self.surface = None
         self.my_surf = None
         self.topleft = (0, 0)
@@ -43,22 +43,45 @@ class _Master:
         self.dont_receive_events = set()
         self.dont_send_events = set()
 
-        self.add_handler(MOUSEMOTION, self.change_cursor, self_arg=False)
+        self.add_handler(MOUSEMOTION, self._change_cursor, self_arg=False)
+        self.pub_arg_dict['Master'] = ['cursor']
 
     def __str__(self):
         return f'<{str(self.__class__)[8:-2]} object, ID {self.ID}>'
 
-    def change_cursor(self, event):
-        if self.get_abs_master_rect().collidepoint(event.pos):
+    def _change_cursor(self, event):
+        """Default handler for MOUSEMOTION events. It calls cursor updater with correct argument.
+        Private."""
+
+        self._update_cursor(event.pos)
+
+    def _update_cursor(self, mousepos):
+        """This method is called when mouse moves or widget cursor is changed. It checks if the mouse is above
+        the widget and actualises cursor image.
+        Private."""
+
+        if self.get_abs_master_rect().collidepoint(mousepos):
             for child in self.children:
-                if child.get_abs_master_rect().collidepoint(event.pos):
+                if child.get_abs_master_rect().collidepoint(mousepos):
                     return
             if isinstance(self, _Widget):
                 siblings = self.master.children
                 for sibling in siblings[siblings.index(self) + 1:]:
-                    if sibling.get_abs_master_rect().collidepoint(event.pos):
+                    if sibling.get_abs_master_rect().collidepoint(mousepos):
                         return
             set_cursor(*self.cursor)
+
+    def get_abs_master_rect(self):
+        """This method is overridden in both _Widget and Window. It is here only because PyCharm highlithes its usages
+        in _Master."""
+
+        pass
+
+    def add_update(self, rect):
+        """This method is overridden in both _Widget and Window. It is here only because PyCharm highlithes its usages
+        in _Master."""
+
+        pass
 
     def on_screen(self, rect=None):
         """Returns True if there is its image on current window, otherwise False.
@@ -269,6 +292,36 @@ class _Master:
             elif child == path[0] and len(path) > 1:
                 child.redraw_child_reccurent(abs_clip, path[1:])
 
+    def set(self, **kwargs):
+        """Sets the keyword arguments and actualises the surface of appearance and the image on the screen.
+        Public."""
+
+        old = dict()
+        for name, value in kwargs.items():
+            if name in self.kwarg_list():
+                if name in self.pub_arg_dict['special']:
+                    self._set_special(name, value)
+                else:
+                    old[name] = getattr(self, name, None)
+                    setattr(self, name, value)
+        self._set_update(old, **kwargs)
+
+    def _set_update(self, old=None, **kwargs):
+        """Actualises its image on the screen after setting new values to attributes in most efficient way.
+        Private."""
+
+        if old is None:
+            old = dict()
+        for name in kwargs.keys():
+            if name == 'cursor':
+                self._update_cursor(pg.mouse.get_pos())
+
+    def _set_special(self, name, value):
+        """Manages settings that require some special action instead of changing attributes of self.
+        Private."""
+
+        pass
+
 
 class Window(_Master):
     """The main master. Causes problems if instanced multiple times."""
@@ -287,7 +340,7 @@ class Window(_Master):
         self.my_surf.fill(self.bg_color)
         self.my_surf.convert_alpha()
         self.to_update = list()
-        self.pub_arg_dict['Window_attr'] = ['fps', 'background']
+        self.pub_arg_dict['Window_attr'] = ['fps', 'bg_color']
         self.pub_arg_dict['Window_resize'] = ['min_size', 'max_size']
         self.pub_arg_dict['special'].extend(['title', 'icon_title', 'icon', 'size'])
         self.fps = CONST.DEFAULT.WINDOW.fps
@@ -386,9 +439,9 @@ class Window(_Master):
         #     if child.master_rect.colliderect(Rect(dest, surf.get_size())):
         #         child.blit()
 
-    def set(self, **kwargs):
-        """Sets the keyword arguments and actualises the surface of appearance and the image on the screen.
-        Public."""
+    """def set(self, **kwargs):
+        Sets the keyword arguments and actualises the surface of appearance and the image on the screen.
+        Public.
 
         old = dict()
         for name, value in kwargs.items():
@@ -398,7 +451,7 @@ class Window(_Master):
                 else:
                     old[name] = getattr(self, name, None)
                     setattr(self, name, value)
-        self._set_update(old, **kwargs)
+        self._set_update(old, **kwargs)"""
 
     def _set_update(self, old=None, **kwargs):
         """Actualises its image on the screen after setting new values to attributes in most efficient way.
@@ -407,11 +460,12 @@ class Window(_Master):
         if old is None:
             old = dict()
         if kwargs:
+            super()._set_update(old, **kwargs)
             res = False
             for name in kwargs.keys():
                 if name in self.pub_arg_dict['Window_resize']:
                     res = True
-                elif name == 'background':
+                elif name == 'bg_color':
                     self.my_surf.fill(self.bg_color)
                     self.blit()
             if res:
@@ -424,6 +478,7 @@ class Window(_Master):
         """Manages settings that require some special action instead of changing attributes of self.
         Private."""
 
+        super()._set_special(name, value)
         if name == 'size':
             pg.event.post(pg.event.Event(VIDEORESIZE, size=value, w=value[0], h=value[1]))
         elif name == 'title':
@@ -441,7 +496,8 @@ class Window(_Master):
         if old is None:
             old = dict()
         for name, value in kwargs.items():
-            self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_WINDOW_ATTR, name=name, new=value, old=old[name] if name in old else None))
+            self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_WINDOW_ATTR, name=name, new=value,
+                                            old=old[name] if name in old else None))
 
 
 class _Widget(_Master):
@@ -525,13 +581,13 @@ class _Widget(_Master):
         if CONST.SUPER in kwargs:
             if kwargs[CONST.SUPER]:
                 return
+        self._child_init()
         self.set(**kwargs)
         self._generate_surf()
         if self.master_rect.size != self.my_surf.get_size():
             self.master_rect.size = self.my_surf.get_size()
             self._create_subsurface()
         self.appear()
-        self._child_init()
 
     def appear(self):
         """Method used to draw widget on the screen properly.
@@ -594,9 +650,9 @@ class _Widget(_Master):
         for child in self.children:
             child.reconnect()
 
-    def set(self, **kwargs):
-        """Sets the keyword arguments and actualises the surface of appearance and the image on the screen.
-        Public."""
+    """def set(self, **kwargs):
+        Sets the keyword arguments and actualises the surface of appearance and the image on the screen.
+        Public.
 
         old = dict()
         for name, value in kwargs.items():
@@ -606,25 +662,28 @@ class _Widget(_Master):
                 else:
                     old[name] = getattr(self, name, None)
                     setattr(self, name, value)
-        self._set_update(old, **kwargs)
+        self._set_update(old, **kwargs)"""
 
     def _set_update(self, old=None, **kwargs):
         """Actualises its image on the screen after setting new values to attributes in most efficient way.
         Private."""
 
-        if kwargs:
+        super()._set_update(old, **kwargs)
+
+        """if kwargs:
             old_surf = self.my_surf.copy()
             self._generate_surf()
             if old_surf.get_size() != self.my_surf.get_size():
                 self.move_resize(resize=self.my_surf.get_size(), resize_rel=False, update_surf=False)
             elif old_surf != self.my_surf:
                 self.appear()
-            self._set_event(old, **kwargs)
+            self._set_event(old, **kwargs)"""
 
     def _set_special(self, name, value):
         """Does special actions when changing special attributes.
         Private."""
 
+        super()._set_special(name, value)
         if name == 'visible' and value != self.visible:
             self.visible = value
             if value:

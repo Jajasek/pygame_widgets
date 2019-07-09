@@ -42,7 +42,7 @@ def Pohyb(self, event, btn, rel):
 
 size = (700, 500)
 Okno = pw.Window(size, RESIZABLE, min_size=(350, 250), max_size=(1920, 1080))
-Okno.attributes.bg_color = THECOLORS['gray42']
+Okno.attr.bg_color = THECOLORS['gray42']
 Okno.add_handler(VIDEORESIZE, zmena_okna, self_arg=True, event_arg=False, call_if_handled_by_children=True)
 Okno.update_display()
 L_0 = pw.Label(Okno, auto_res=True, text=str(Okno.fps), font_color=THECOLORS['yellow3'], bg_color=THECOLORS['black'])
@@ -59,7 +59,7 @@ print('L_1_0:', L_1_0.connected)
 Okno.update_display()
 L_1_1 = pw.Label(H_0, topleft=(0, 60), text='Label_1_1', auto_res=True, bold=True, underlined=True, italic=True,
                  font_size=25)
-L_1_0.attributes['onscreen'] = True
+L_1_0.attr['onscreen'] = True
 print('L_1_1:', L_1_1.connected)
 Okno.update_display()
 Okno.children.reverse()

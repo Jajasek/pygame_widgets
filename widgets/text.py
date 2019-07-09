@@ -15,17 +15,17 @@ class _Text(W._Widget):
         updated = kwargs.copy()
         updated[CONST.SUPER] = True
         super().__init__(master, topleft, size, **updated)
-        self.font = None
+        self._font = None
         self.font_name = CONST.DEFAULT.TEXT.font
         self.font_size = CONST.DEFAULT.TEXT.font_size
 
-        self.bold = False
-        self.italic = False
-        self.underlined = False
+        self.bold = CONST.DEFAULT.TEXT.bold
+        self.italic = CONST.DEFAULT.TEXT.italic
+        self.underlined = CONST.DEFAULT.TEXT.underlined
 
         self.font_color = CONST.DEFAULT.TEXT.font_color
-        self.background = CONST.DEFAULT.TEXT.bg_color
-        self.smooth = True
+        self.background = CONST.DEFAULT.TEXT.bg
+        self.smooth = CONST.DEFAULT.TEXT.smooth
         self.text = CONST.DEFAULT.TEXT.text
         self.alignment_x = CONST.DEFAULT.TEXT.Alignment.x
         self.alignment_y = CONST.DEFAULT.TEXT.Alignment.y
@@ -37,19 +37,19 @@ class _Text(W._Widget):
         self._safe_init(**kwargs)
 
     def _new_font(self):
-        """Creates new pygame.font.Font object according to actual settings.
+        """Creates new pygame._font.Font object according to actual settings.
         Private."""
 
-        self.font = pg.font.SysFont(self.font_name, self.font_size, self.bold, self.italic)
-        self.font.set_underline(self.underlined)
+        self._font = pg.font.SysFont(self.font_name, self.font_size, self.bold, self.italic)
+        self._font.set_underline(self.underlined)
 
     def _set_font(self):
-        """Adjusts the current pygame.font.Font object according to actual settings.
+        """Adjusts the current pygame._font.Font object according to actual settings.
         Private."""
 
-        self.font.set_bold(self.bold)
-        self.font.set_italic(self.italic)
-        self.font.set_underline(self.underlined)
+        self._font.set_bold(self.bold)
+        self._font.set_italic(self.italic)
+        self._font.set_underline(self.underlined)
 
     def _set_update(self, old=None, **kwargs):
         """Actualises its image on the screen after setting new values to attributes in most efficient way.
@@ -98,9 +98,9 @@ class Label(_Text):
         """Generates new surface of appearance.
         Private."""
 
-        text = self.font.render(self.text, self.smooth, self.font_color, self.background if not
+        text = self._font.render(self.text, self.smooth, self.font_color, self.background if not
                                 isinstance(self.background, pg.Surface) and not callable(self.background) and
-                                self.background[3] else None)
+                                                                                             self.background[3] else None)
         if callable(self.background):
             self.my_surf = self.background(self, text)
             return

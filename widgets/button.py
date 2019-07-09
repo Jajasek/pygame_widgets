@@ -76,7 +76,7 @@ class Button(_Button, T.Label):
         self.add_handler(MOUSEMOTION, self._mouseover_check, self_arg=False)
 
         self.pub_arg_dict['Button_appearance'] = ['bg_normal', 'bg_mouseover', 'bg_pressed',
-                                                  'cursor_normal', 'cursor_mouseover', 'cursor_pressed']
+                                                  'cursor_mouseover', 'cursor_pressed']
         self._safe_init(**kwargs)
 
     def _mouseover_check(self, event):
@@ -129,7 +129,7 @@ class Button(_Button, T.Label):
                     update = True
             if update:
                 self._mouseover_update()
-            T._Text._set_update(self, old, **kwargs)
+            super()._set_update(old, **kwargs)
 
     def _set_event(self, old=None, **kwargs):
         """Places events on the queue based on changed attributes.
