@@ -49,6 +49,13 @@ class _Master:
     def __str__(self):
         return f'<{str(self.__class__)[8:-2]} object, ID {self.ID}>'
 
+    def __del__(self):
+        self.delete()
+
+    def delete(self):
+        for child in self.children:
+            child.delete()
+
     def _change_cursor(self, event):
         """Default handler for MOUSEMOTION events. It calls cursor updater with correct argument.
         Private."""
@@ -349,12 +356,11 @@ class Window(_Master):
         self.set(**kwargs)
         self.blit()
 
-    @staticmethod
-    def quit(code=0):
+    def quit(self, code=0):
         """Default handler for pygame.QUIT event.
         Public."""
 
-        # noinspection PyUnresolvedReferences
+        self.delete()
         pg.quit()
         exit(code)
 
@@ -373,6 +379,9 @@ class Window(_Master):
         pg.display.update(self.to_update)
         self.to_update = list()
         self.clock.tick(self.fps)
+
+    def get_fps(self):
+        return self.clock.get_fps()
 
     def _resize(self, event):
         """Default handler for Pygame.VIDEORESIZE event.
@@ -518,6 +527,15 @@ class _Widget(_Master):
         self.master.children.append(self)
         self.my_surf = pg.Surface(size, SRCALPHA)
         self._safe_init(**kwargs)
+
+    def delete(self):
+        for child in self.children:
+            child.delete()
+        try:
+            self.disconnect()
+        except Exception:
+            pass
+        self.master = None
 
     def get_abs_master_rect(self):
         """Returns the rectangle of used space in absolute master's surface.

@@ -19,6 +19,20 @@ class Image(W._Widget):
         self.image = CONST.DEFAULT.IMAGE.bg
         self._safe_init(**kwargs)
 
+    def _set_update(self, old=None, **kwargs):
+        """Actualises its image on the screen after setting new values to attributes in most efficient way.
+        Private."""
+
+        if kwargs:
+            update = False
+            for name in kwargs.keys():
+                if name in self.pub_arg_dict['Image_set']:
+                    update = True
+            if update:
+                self._generate_surf()
+                self.appear()
+            super()._set_update(old, **kwargs)
+
     def _set_event(self, old=None, **kwargs):
         """Places events on the queue based on changed attributes.
         Private."""

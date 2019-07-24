@@ -42,7 +42,11 @@ def set(size, hotspot, xormasks, andmasks):
     cursors.set(*cursors.arrow). Custom cursors must be first compiled by cursors.compile() to create the needed args.
     Public."""
 
-    _mouse.set_cursor(size, hotspot, xormasks, andmasks)
+    if size is None:
+        _mouse.set_visible(False)
+    else:
+        _mouse.set_visible(True)
+        _mouse.set_cursor(size, hotspot, xormasks, andmasks)
 
 
 def get():
@@ -65,3 +69,4 @@ sizer_x = compile(_cursors.sizer_x_strings, (11, 7))
 sizer_y = compile(_cursors.sizer_y_strings, (7, 11))
 sizer_xy = compile(_cursors.sizer_xy_strings, (11, 7))
 hand = compile(_hand_strings, (5, 1))
+invisible = (None, None, None, None)

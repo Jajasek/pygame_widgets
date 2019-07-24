@@ -13,4 +13,8 @@ import pygame_widgets.constants as constants
 from pygame_widgets.auxiliary.event_mode import set_mode_init, set_mode_mainloop, get_mode
 
 
+def new_loop():
+    pygame.event.post(pygame.event.Event(constants.PYGAME_WIDGETS, ID=constants.E_LOOP_STARTED))
+
+
 print("pygame_widgets initialised")
