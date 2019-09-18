@@ -40,10 +40,12 @@ class _Master:
         self.cursor = CONST.DEFAULT.cursor
         self.grab = dict()
         self.handlers = dict()
+        self.handler_queue = list()
         self.dont_receive_events = set()
         self.dont_send_events = set()
 
         self.add_handler(MOUSEMOTION, self._change_cursor, self_arg=False)
+        self.add_handler(E_LOOP_STARTED, self._move_queue, self_arg=False, event_arg=False)
         self.pub_arg_dict['Master'] = ['cursor']
 
     def __str__(self):
@@ -61,6 +63,17 @@ class _Master:
         Private."""
 
         self._update_cursor(event.pos)
+
+    def _move_queue(self):
+        """Default handler for E_LOOP_STARTED events. It calls delayed handlers.
+        Private."""
+
+        try:
+            del self.handler_queue[0]
+            for handler, event in self.handler_queue[0]:
+                handler(self, event)
+        except IndexError:
+            pass
 
     def _update_cursor(self, mousepos):
         """This method is called when mouse moves or widget cursor is changed. It checks if the mouse is above
@@ -85,6 +98,12 @@ class _Master:
         pass
 
     def add_update(self, rect):
+        """This method is overridden in both _Widget and Window. It is here only because PyCharm highlithes its usages
+        in _Master."""
+
+        pass
+
+    def get_visibility(self):
         """This method is overridden in both _Widget and Window. It is here only because PyCharm highlithes its usages
         in _Master."""
 
@@ -126,13 +145,13 @@ class _Master:
         if hasattr(self, 'master') and level:
             self.master.remove_grab(event_type, self, level - 1)
 
-    def add_handler(self, event_type, func, args=None, kwargs=None, self_arg=True, event_arg=True):
+    def add_handler(self, event_type, func, args=None, kwargs=None, self_arg=True, event_arg=True, delay=0):
         """Adds handling function with settings.
         Public."""
 
         if event_type not in self.handlers:
             self.handlers[event_type] = list()
-        self.handlers[event_type].append(Handler(func, args, kwargs, self_arg, event_arg))
+        self.handlers[event_type].append(Handler(func, args, kwargs, self_arg, event_arg, delay))
 
     def remove_handler(self, event_type, func, args=None, kwargs=None, self_arg=True, event_arg=True):
         """Removes handling function with settings.
@@ -224,7 +243,12 @@ class _Master:
             return
         if event.ID in self.handlers:
             for handler in self.handlers[event.ID]:
-                handler(self, event)
+                if handler.delay:
+                    if len(self.handler_queue) <= handler.delay:
+                        self.handler_queue += [list() for _ in range(handler.delay - len(self.handler_queue) + 1)]
+                    self.handler_queue[handler.delay].append((handler, event))
+                else:
+                    handler(self, event)
         if event.ID not in self.dont_send_events:
             if event.ID in self.grab:
                 grab_exists = self.grab[event.ID]
@@ -265,7 +289,7 @@ class _Master:
         Can be called by master or child.
         Private."""
 
-        if not self.visible or not self.on_screen():
+        if not self.get_visibility() or not self.on_screen():
             return
         if rect is None:
             rect = self.surface.get_rect()
@@ -413,6 +437,12 @@ class Window(_Master):
             if self.max_size[i] is not None:
                 size[i] = min(size[i], self.max_size[i])
         return tuple(size)
+
+    def get_visibility(self):
+        """Screen is always visible, so this method returns True. This may change in the future.
+        Public."""
+
+        return True
 
     def add_update(self, rect):
         """Adds update rect to the to_update list.
@@ -569,6 +599,12 @@ class _Widget(_Master):
             pass
         path.reverse()
         return path
+
+    def get_visibility(self):
+        """Returns True if all master widgets and self are visible, otherwise False.
+        Public"""
+
+        return self.visible and self.master.get_visibility()
 
     def _generate_surf(self):
         """Generates new surface of appearance.
