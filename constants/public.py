@@ -1,5 +1,6 @@
 # noinspection PyUnresolvedReferences
 from pygame.colordict import THECOLORS
+from pygame import Surface
 # noinspection PyUnresolvedReferences
 from pygame.locals import *
 
@@ -235,3 +236,44 @@ def button_wrapper(func, buttons=(BUTTON_LEFT,), self_arg=False, event_arg=False
                 args = [event] + list(args)
             func(*args, **kwargs)
     return handler
+
+
+def button_bg(fill, edge, frame_thickness=1):
+    """Returns a function, that can be used to create background surface for button."""
+
+    background = frame(fill, edge, frame_thickness)
+
+    def func(self, text):
+        surf = background(self.master_rect.size)
+        dest = (self.alignment_x * (self.master_rect.w - text.get_width()) / 2,
+                self.alignment_y * (self.master_rect.h - text.get_height()) / 2)
+        surf.blit(text, dest)
+        surf.convert_alpha()
+        return surf
+    return func
+
+
+def frame(fill, edge, thickness=1):
+    """Returns a function, that creates surface of given size, which is filled with fill color and has a frame of
+    given thickness and different color."""
+
+    def func(size):
+        if size == func.last_size:
+            return func.last_surf.copy()
+        surf = Surface(size, SRCALPHA)
+        surf.fill(edge)
+        if size[0] > 2 * thickness and size[1] > 2 * thickness:
+            if fill[3] == 255:
+                surf1 = Surface([a - (2 * thickness) for a in size], SRCALPHA)
+                surf1.fill(fill)
+                surf.blit(surf1, (thickness, thickness))
+            else:
+                for y in range(thickness, size[1] - thickness):
+                    for x in range(thickness, size[0] - thickness):
+                        surf.set_at((x, y), fill)
+        func.last_size = size
+        func.last_surf = surf.copy()
+        return surf
+    func.last_size = None
+    func.last_surf = None
+    return func

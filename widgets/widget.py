@@ -145,13 +145,16 @@ class _Master:
         if hasattr(self, 'master') and level:
             self.master.remove_grab(event_type, self, level - 1)
 
-    def add_handler(self, event_type, func, args=None, kwargs=None, self_arg=True, event_arg=True, delay=0):
+    def add_handler(self, event_type, func, args=None, kwargs=None, self_arg=True, event_arg=True, delay=0, index=None):
         """Adds handling function with settings.
         Public."""
 
         if event_type not in self.handlers:
             self.handlers[event_type] = list()
-        self.handlers[event_type].append(Handler(func, args, kwargs, self_arg, event_arg, delay))
+        if index is None:
+            self.handlers[event_type].append(Handler(func, args, kwargs, self_arg, event_arg, delay))
+        else:
+            self.handlers[event_type].insert(index, Handler(func, args, kwargs, self_arg, event_arg, delay))
 
     def remove_handler(self, event_type, func, args=None, kwargs=None, self_arg=True, event_arg=True):
         """Removes handling function with settings.
@@ -683,6 +686,7 @@ class _Widget(_Master):
         if abs_rect:
             rect.move_ip(*[-i for i in self.master.get_abs_master_rect().topleft])
         self.master_rect = rect
+        self.connected = True
         self._create_subsurface()
         if self not in self.master.children:
             self.master.children.append(self)

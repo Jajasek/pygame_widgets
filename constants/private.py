@@ -1,31 +1,5 @@
-from pygame_widgets.constants.public import THECOLORS, SRCALPHA
+from pygame_widgets.constants.public import THECOLORS, SRCALPHA, button_bg, frame
 from pygame_widgets.auxiliary import cursors
-from pygame import Surface
-
-
-def button_bg(fill, edge):
-    background = frame(fill, edge)
-
-    def func(self, text):
-        surf = background(self.master_rect.size)
-        dest = (self.alignment_x * (self.master_rect.w - text.get_width()) / 2,
-                self.alignment_y * (self.master_rect.h - text.get_height()) / 2)
-        surf.blit(text, dest)
-        surf.convert_alpha()
-        return surf
-    return func
-
-
-def frame(fill, edge):
-    def func(size):
-        surf = Surface(size, SRCALPHA)
-        surf.fill(edge)
-        if size[0] > 2 and size[1] > 2:
-            surf1 = Surface([a - 2 for a in size], SRCALPHA)
-            surf1.fill(fill)
-            surf.blit(surf1, (1, 1))
-        return surf
-    return func
 
 
 class DEFAULT:

@@ -18,15 +18,49 @@ class _Button(W._Widget):
         super().__init__(master, topleft, size, **updated)
         self.pressed = set()
         self.mouseover = False
+        self.shortcut_key = None
+        self.shortcut_keymod = KMOD_NONE
         self.add_handler(MOUSEBUTTONDOWN, self._click, self_arg=False)
         self.add_handler(MOUSEBUTTONUP, self._click, self_arg=False)
         self.add_handler(MOUSEMOTION, self._movement, self_arg=False)
+        self.add_handler(KEYDOWN, self._click, self_arg=False)
+        self.add_handler(KEYUP, self._click, self_arg=False)
+
+        self.pub_arg_dict['_Button'] = ['shortcut_key', 'shortcut_keymod']
+
         self._safe_init(**kwargs)
 
     def _click(self, event):
         """Default handler for MOUSEBUTTON events, actually creates the behaviour of button. Posts events E_BUTTON_.
         Private."""
 
+        if event.type == KEYDOWN:
+            if event.key == self.shortcut_key and \
+                    ((event.mod & self.shortcut_keymod) or event.mod == self.shortcut_keymod):
+                self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_BUTTON_PRESSED,
+                                                button=BUTTON_LEFT, pos=self.get_abs_master_rect().center))
+                self.pressed.add('shortcut')
+            return
+        if event.type == KEYUP:
+            if event.key == self.shortcut_key and ((event.mod & self.shortcut_keymod) or
+                                                   event.mod == self.shortcut_keymod) and 'shortcut' in self.pressed:
+                self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_BUTTON_RELEASED,
+                                                button=BUTTON_LEFT, pos=self.get_abs_master_rect().center))
+                self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_BUTTON_BUMPED,
+                                                button=BUTTON_LEFT, pos=self.get_abs_master_rect().center))
+                self.pressed.remove('shortcut')
+            return
+
+        """if event.type in [KEYDOWN, KEYUP]:
+            if event.key == self.shortcut_key and (event.mod & self.shortcut_keymod):
+                self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_BUTTON_PRESSED if event.type ==
+                                                                                       KEYDOWN else E_BUTTON_RELEASED,
+                                                button=BUTTON_LEFT, pos=self.get_abs_master_rect().center))
+                if event.type == KEYDOWN:
+                    self.pressed.add('shortcut')
+                else:
+                    self.pressed.remove('shortcut')
+            return"""
         if self.get_abs_surf_rect().collidepoint(event.pos):
             if event.type == MOUSEBUTTONDOWN:
                 # noinspection PyArgumentList
@@ -56,6 +90,13 @@ class _Button(W._Widget):
             else:
                 self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_BUTTON_MOUSEOUTSIDE, pos=event.pos))
 
+    def _set_update(self, old=None, **kwargs):
+        if kwargs:
+            for name, value in kwargs.items():
+                if name == 'shortcut_keymod' and value == None:
+                    self.shortcut_keymod = KMOD_NONE
+            super()._set_update(old, **kwargs)
+
 
 class Button(_Button, T.Label):
     """Standart button. 1-line label that reacts to mouse events."""
@@ -76,7 +117,7 @@ class Button(_Button, T.Label):
         self.add_handler(MOUSEMOTION, self._mouseover_check, self_arg=False)
 
         self.pub_arg_dict['Button_appearance'] = ['bg_normal', 'bg_mouseover', 'bg_pressed',
-                                                  'cursor_mouseover', 'cursor_pressed']
+                                                  'cursor_mouseover', 'cursor_pressed', 'appearance']
         self._safe_init(**kwargs)
 
     def _mouseover_check(self, event):
@@ -126,7 +167,10 @@ class Button(_Button, T.Label):
             update = False
             for name in kwargs.keys():
                 if name in self.pub_arg_dict['Button_appearance']:
-                    update = True
+                    if name == 'appearance' and kwargs[name] not in ['normal', 'mouseover', 'pressed']:
+                        self.__setattr__(name, old[name])
+                    else:
+                        update = True
             if update:
                 self._mouseover_update()
             super()._set_update(old, **kwargs)
