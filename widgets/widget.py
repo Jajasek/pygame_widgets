@@ -1,3 +1,4 @@
+import sys
 import pygame as pg
 from pygame_widgets.auxiliary.attributes import Attributes
 from pygame_widgets.auxiliary.handler import Handler
@@ -389,7 +390,7 @@ class Window(_Master):
 
         self.delete()
         pg.quit()
-        exit(code)
+        sys.exit(code)
 
     def _AltF4(self, event):
         """Default handler for pygame.KEYDOWN event. Quits if Alt + F4 is pressed.
