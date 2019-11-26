@@ -1,7 +1,7 @@
 class Handler:
     def __init__(self, func, args=None, kwargs=None, self_arg=True, event_arg=True, delay=0):
         self.func = func
-        self.args = list() if args is None else args
+        self.args = list(args)
         self.kwargs = dict() if kwargs is None else kwargs
         self.self_arg = self_arg
         self.event_arg = event_arg
@@ -15,3 +15,6 @@ class Handler:
             args.append(event)
         args += self.args
         self.func(*args, **self.kwargs)
+
+    def copy(self):
+        return Handler(self.func, self.args, self.kwargs, self.self_arg, self.event_arg, self.delay)

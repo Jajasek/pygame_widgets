@@ -13,7 +13,7 @@ import pygame_widgets.constants as constants
 from pygame_widgets.auxiliary.event_mode import set_mode_init, set_mode_mainloop, get_mode
 
 
-def new_loop():
+def new_loop(window=None):
     pygame.event.post(pygame.event.Event(constants.PYGAME_WIDGETS, ID=constants.E_LOOP_STARTED))
     try:
         del delayed_call.queue[0]
@@ -21,13 +21,17 @@ def new_loop():
             func(*args, **kwargs)
     except IndexError:
         pass
+    try:
+        window.update_display()
+    except (AttributeError, TypeError):
+        pass
 
 
 def delayed_call(func, delay=1, *args, **kwargs):
     if len(delayed_call.queue) <= delay:
         delayed_call.queue += [list() for _ in range(delay - len(delayed_call.queue) + 1)]
     delayed_call.queue[delay].append((func, args, kwargs))
+
+
 delayed_call.queue = list()
-
-
 print("pygame_widgets initialised")

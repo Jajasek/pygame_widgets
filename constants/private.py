@@ -63,5 +63,5 @@ class DEFAULT:
             color = THECOLORS['black']
 
 
-SUPER = 's'  # kwarg used to detect if the class is initialising as super() or not
+SUPER = '_SUPER'  # kwarg used to detect if the class is initialising as super() or not
 PYGAME_EVENTS = range(1, 18)

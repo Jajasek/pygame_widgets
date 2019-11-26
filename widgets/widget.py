@@ -113,6 +113,7 @@ class _Master:
     def on_screen(self, rect=None):
         """Returns True if there is its image on current window, otherwise False.
         Public."""
+        # TODO: This returns True even if the rect is outside self.master.surface
 
         if not rect:
             rect = self.get_abs_master_rect()
@@ -171,11 +172,17 @@ class _Master:
                 self.handlers[event_type].remove(handler)
 
     def get_handlers(self, copy=True):
-        """Returns a copy or a pointer to the list of handlers. The copy is useles, but with the pointer can user
+        """Returns a copy or a reference to the list of handlers. The copy is useles, but with the reference user can
         change the order of handlers. You should know, what you are doing. To add or remove handlers,
-        it is reccomended to use the add_handler and remove_handler methods.
+        it is recommended to use the add_handler and remove_handler methods.
         Public."""
-        return self.handlers.copy() if copy else self.handlers
+
+        if not copy:
+            return self.handlers
+        copied = dict()
+        for event_type, list in self.handlers.items():
+            copied[event_type] = [h.copy() for h in list]
+        return copied
 
     def add_nr_events(self, *args):
         for e in args:
@@ -199,7 +206,7 @@ class _Master:
             except ValueError:
                 pass
 
-    """def handle_events(self, *events, filter=True):
+    """def handle_events(self, *events, _filter=True):
         Function for handling events if possible. For every event, if succesfully handled, returns True, otherwise
         False. Should be called in Window's instance for every event in event queue, especially for pygame.VIDEORESIZE
         and pygame.QUIT.
@@ -207,7 +214,7 @@ class _Master:
 
         output = [False] * len(events)
         for index, e in enumerate(events):
-            if hasattr(e, 'widget') and e.widget == self and filter:
+            if hasattr(e, 'widget') and e.widget == self and _filter:
                 continue
 
             if not hasattr(e, 'ID'):
@@ -240,10 +247,10 @@ class _Master:
             output[index] = out
         return output"""
 
-    def handle_event(self, event, filter=True):
+    def handle_event(self, event, _filter=True):
         if not hasattr(event, 'ID'):
             event.ID = event.type
-        if (hasattr(event, 'widget') and event.widget == self and filter) or event.ID in self.dont_receive_events:
+        if (hasattr(event, 'widget') and event.widget == self and _filter) or event.ID in self.dont_receive_events:
             return
         if event.ID in self.handlers:
             for handler in self.handlers[event.ID]:
@@ -260,14 +267,14 @@ class _Master:
                 grab_exists = False
 
             if grab_exists:
-                self.grab[event.type][-1].handle_event(event)
+                self.grab[event.ID][-1].handle_event(event)
             else:
                 for child in self.children:
                     child.handle_event(event)
 
-    def handle_events(self, *events, filter=True):
+    def handle_events(self, *events, _filter=True):
         for event in events:
-            self.handle_event(event, filter)
+            self.handle_event(event, _filter)
 
     def _post_event(self, event):
         """Method that posts signed event and immediatelly handles it (when the event gets to the handling process
@@ -278,7 +285,7 @@ class _Master:
             return
         if event.type == PYGAME_WIDGETS:
             event.widget = self
-            self.handle_event(event, filter=False)
+            self.handle_event(event, _filter=False)
         pg.event.post(event)
 
     def kwarg_list(self):
@@ -404,8 +411,9 @@ class Window(_Master):
         Some form of updating display should be called in every mainloop cycle.
         Public."""
 
-        pg.display.update(self.to_update)
-        self.to_update = list()
+        if self.to_update:
+            pg.display.update(self.to_update)
+            self.to_update = list()
         self.clock.tick(self.fps)
 
     def get_fps(self):
@@ -448,14 +456,14 @@ class Window(_Master):
 
         return True
 
-    def add_update(self, rect):
+    def add_update(self, rect=None):
         """Adds update rect to the to_update list.
         Public."""
 
+        if not rect:
+            rect = self.get_abs_master_rect()
         if self.on_screen(rect):
             self.to_update.append(self.surface.get_rect().clip(rect))
-            return True
-        return False
 
     def get_abs_master_rect(self):
         """This is here for compatibility with some methods of Master_.
@@ -469,12 +477,12 @@ class Window(_Master):
 
         return self.surface.get_rect()
 
-    def change_surface(self, surf, dest=(0, 0)):
+    def change_surface(self, surf, dest=(0, 0), area=None, special_flags=0):
         """Used to change part of window background.
         Public."""
 
         surf.convert_alpha()
-        self.my_surf.blit(surf, dest)
+        self.my_surf.blit(surf, dest, area, special_flags)
         self.blit()
         # self.surface.blit(self.my_surf, (0, 0))
         # self.to_update.append(Rect(dest, surf.get_size()))
