@@ -52,6 +52,9 @@ class _Master:
     def __str__(self):
         return f'<{str(self.__class__)[8:-2]} object, ID {self.ID}>'
 
+    def __repr__(self):
+        return str(self)
+
     def __del__(self):
         self.delete()
 
@@ -573,6 +576,7 @@ class _Widget(_Master):
     def delete(self):
         for child in self.children:
             child.delete()
+        self.children.clear()
         try:
             self.disconnect()
         except Exception:
@@ -692,7 +696,7 @@ class _Widget(_Master):
 
         if not rect:
             rect = self.master_rect
-        if abs_rect:
+        elif abs_rect:
             rect.move_ip(*[-i for i in self.master.get_abs_master_rect().topleft])
         self.master_rect = rect
         self.connected = True
