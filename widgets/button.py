@@ -12,6 +12,8 @@ __all__ = ['Button']
 class _Button(W._Widget):
     """Virtual base widget, which adds the button functionality. Cannot be instanced."""
 
+    # TODO: when I subclass this widget, I should have opportunity to change the event types it posts
+
     def __init__(self, master, topleft, size, **kwargs):
         updated = kwargs.copy()
         updated[CONST.SUPER] = True
@@ -31,7 +33,7 @@ class _Button(W._Widget):
         self._safe_init(**kwargs)
 
     def _click(self, event):
-        """Default handler for MOUSEBUTTON events, actually creates the behaviour of button. Posts events E_BUTTON_.
+        """Default handler for MOUSEBUTTON events, actually creates the behaviour of button. Posts events E_BUTTON_*.
         Private."""
 
         if event.type == KEYDOWN:
@@ -51,16 +53,6 @@ class _Button(W._Widget):
                 self.pressed.remove('shortcut')
             return
 
-        """if event.type in [KEYDOWN, KEYUP]:
-            if event.key == self.shortcut_key and (event.mod & self.shortcut_keymod):
-                self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_BUTTON_PRESSED if event.type ==
-                                                                                       KEYDOWN else E_BUTTON_RELEASED,
-                                                button=BUTTON_LEFT, pos=self.get_abs_master_rect().center))
-                if event.type == KEYDOWN:
-                    self.pressed.add('shortcut')
-                else:
-                    self.pressed.remove('shortcut')
-            return"""
         if self.get_abs_surf_rect().collidepoint(event.pos):
             if event.type == MOUSEBUTTONDOWN:
                 # noinspection PyArgumentList
@@ -77,7 +69,7 @@ class _Button(W._Widget):
 
     def _movement(self, event):
         """Default handler for MOUSEMOTION event, creates the behaviour of the button when mouse goes in and outside.
-        Posts events E_BUTTON_.
+        Posts events E_BUTTON_*.
         Private."""
 
         if self.get_abs_surf_rect().collidepoint(event.pos) and not self.mouseover:
@@ -88,14 +80,14 @@ class _Button(W._Widget):
                 self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_BUTTON_SLIDED, buttons=self.pressed))
                 self.pressed = set()
             else:
-                self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_BUTTON_MOUSEOUTSIDE, pos=event.pos))
+                self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_BUTTON_MOUSEOUTSIDE))
 
     def _set_update(self, old=None, **kwargs):
         if kwargs:
-            for name, value in kwargs.items():
-                if name == 'shortcut_keymod' and value == None:
-                    self.shortcut_keymod = KMOD_NONE
             super()._set_update(old, **kwargs)
+            for name, value in kwargs.items():
+                if name == 'shortcut_keymod' and value is None:
+                    self.shortcut_keymod = KMOD_NONE
 
 
 class Button(_Button, T.Label):
@@ -153,6 +145,7 @@ class Button(_Button, T.Label):
             self.background = self.bg_pressed
             self.cursor = self.cursor_pressed
         cursors.set(*self.cursor)
+        # TODO: the following lines might be able to be overwritten with self.update_appearance()
         self._generate_surf()
         if self.my_surf.get_size() != self.master_rect.size:
             self.move_resize(resize=self.my_surf.get_size(), resize_rel=False)
@@ -164,6 +157,7 @@ class Button(_Button, T.Label):
         Private."""
 
         if kwargs:
+            super()._set_update(old, **kwargs)
             update = False
             for name in kwargs.keys():
                 if name in self.pub_arg_dict['Button_appearance']:
@@ -173,7 +167,6 @@ class Button(_Button, T.Label):
                         update = True
             if update:
                 self._mouseover_update()
-            super()._set_update(old, **kwargs)
 
     def _set_event(self, old=None, **kwargs):
         """Places events on the queue based on changed attributes.

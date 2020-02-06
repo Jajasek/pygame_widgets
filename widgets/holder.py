@@ -117,6 +117,7 @@ class Holder(W._Widget):
         Private."""
 
         if kwargs:
+            super()._set_update(old, **kwargs)
             update = False
             for name in kwargs.keys():
                 if name in self.pub_arg_dict['Holder_attr']:
@@ -124,7 +125,6 @@ class Holder(W._Widget):
             if update:
                 self._generate_surf()
                 self.appear()
-            super()._set_update(old, **kwargs)
 
     def _set_event(self, old=None, **kwargs):
         """Places events on the queue based on changed attributes.
@@ -133,7 +133,8 @@ class Holder(W._Widget):
         if old is None:
             old = dict()
         for name, value in kwargs.items():
-            self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_HOLDER_ATTR, name=name, new=value, old=old[name] if name in old else None))
+            self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_HOLDER_ATTR, name=name, new=value,
+                                            old=old[name] if name in old else None))
 
     def _generate_surf(self):
         """Generates new surface of appearance.
@@ -145,6 +146,8 @@ class Holder(W._Widget):
 
     def create_row_layout(self, *widgets, vertical=True, size=(0, 0),
                           relative_position=((0, "left", None, "left"), (0, "top", None, "top")), identical_cells=True):
+        if not CONST.DEBUG:
+            raise NotImplementedError("This feature is not implemented yet.")
         w = list(widgets)
         for widget in widgets:
             if (widget not in self.children) or (widget in sum([l.widgets for l in self.layouts], [])):

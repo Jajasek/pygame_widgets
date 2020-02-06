@@ -25,6 +25,8 @@ class Entry(I.Image):
     """1-line text widget user can write into."""
 
     def __init__(self, master, topleft=(0, 0), size=(1, 1), **kwargs):
+        if not CONST.DEBUG:
+            raise NotImplementedError("The development of this widget has not finished yet.")
         updated = kwargs.copy()
         updated[CONST.SUPER] = True
         super().__init__(master, topleft, size, **updated)

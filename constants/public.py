@@ -215,6 +215,11 @@ E_BUTTON_APPEARANCE = 112
 E_IMAGE_APPEARANCE = 113
 E_LOOP_STARTED = 114
 
+# text alignment
+A_TOPLEFT = 0
+A_CENTER = 1
+A_BOTTOMRIGHT = 2
+
 
 def Args(*args, **kwargs):
     """This is useful when adding event handler with args or kwargs. You don't have to pass it like list and dict, but

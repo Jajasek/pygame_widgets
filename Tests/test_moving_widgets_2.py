@@ -37,13 +37,13 @@ def Pohyb(self, event, btn, rel):
     except AttributeError:
         b = event.button == btn
     if b:
-        self.move_resize(event.rel if rel == 'rel' else event.pos, rel)
+        self.move_resize(event.rel if rel == 0 else event.pos, rel)
 
 
 size = (700, 500)
 Okno = pw.Window(size, RESIZABLE, min_size=(350, 250), max_size=(1920, 1080))
 Okno.attr.bg_color = THECOLORS['gray42']
-Okno.add_handler(VIDEORESIZE, zmena_okna, self_arg=True, event_arg=False, call_if_handled_by_children=True)
+Okno.add_handler(VIDEORESIZE, zmena_okna, self_arg=True, event_arg=False)
 Okno.update_display()
 L_0 = pw.Label(Okno, auto_res=True, text=str(Okno.fps), font_color=THECOLORS['yellow3'], bg_color=THECOLORS['black'])
 print('L_0:', L_0.connected)
@@ -67,11 +67,11 @@ H_0.children.reverse()
 
 L_1_0.add_handler(KEYDOWN, Pripojeni)
 L_1_0.add_handler(KEYDOWN, Objeveni)
-L_1_0.add_handler(MOUSEMOTION, Pohyb, *Args(MOTION_MIDDLE, 'rel'))
+L_1_0.add_handler(MOUSEMOTION, Pohyb, *Args(MOTION_MIDDLE, 0))
 L_1_1.add_handler(KEYDOWN, lambda self, event: self.set(visible=not self.visible) if event.key == K_v else None)
-L_1_1.add_handler(MOUSEBUTTONDOWN, Pohyb, *Args(BUTTON_LEFT, 'abs'))
-L_1_1.add_handler(MOUSEMOTION, Pohyb, *Args(MOTION_LEFT, 'abs'))
-H_0.add_handler(MOUSEMOTION, Pohyb, *Args(MOTION_RIGHT, 'rel'), call_if_handled_by_children=True)
+L_1_1.add_handler(MOUSEBUTTONDOWN, Pohyb, *Args(BUTTON_LEFT, -1))
+L_1_1.add_handler(MOUSEMOTION, Pohyb, *Args(MOTION_LEFT, -1))
+H_0.add_handler(MOUSEMOTION, Pohyb, *Args(MOTION_RIGHT, 0))
 
 i = 0
 while True:

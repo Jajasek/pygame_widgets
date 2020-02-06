@@ -24,7 +24,6 @@ class _Text(W._Widget):
         self.underlined = CONST.DEFAULT.TEXT.underlined
 
         self.font_color = CONST.DEFAULT.TEXT.font_color
-        self.background = CONST.DEFAULT.TEXT.bg
         self.smooth = CONST.DEFAULT.TEXT.smooth
         self.text = CONST.DEFAULT.TEXT.text
         self.alignment_x = CONST.DEFAULT.TEXT.Alignment.x
@@ -32,7 +31,7 @@ class _Text(W._Widget):
 
         self.pub_arg_dict["Text_new_font"] = ["font_name", "font_size"]
         self.pub_arg_dict["Text_set_font"] = ["bold", "italic", "underlined"]
-        self.pub_arg_dict["Text_render"] = ["font_color", "background", "smooth", "text", "alignment_x", "alignment_y"]
+        self.pub_arg_dict["Text_render"] = ["font_color", "smooth", "text", "alignment_x", "alignment_y"]
 
         self._safe_init(**kwargs)
 
@@ -56,6 +55,7 @@ class _Text(W._Widget):
         Private."""
 
         if kwargs:
+            super()._set_update(old, **kwargs)
             new = False
             set = False
             render = False
@@ -72,15 +72,7 @@ class _Text(W._Widget):
             elif set:
                 self._set_font()
             if new or set or render:
-                old_surf = self.my_surf.copy()
-                self._generate_surf()
-                if old_surf.get_size() != self.my_surf.get_size():
-                    """self.disappear()
-                    self.master_rect.size = self.my_surf.get_size()
-                    self._create_subsurface()"""
-                    self.move_resize(resize=self.my_surf.get_size(), resize_rel=False)
-                elif old_surf != self.my_surf:
-                    self.appear()
+                self.update_appearance()
             self._set_event(old, **kwargs)
 
 
@@ -91,6 +83,9 @@ class Label(_Text):
         updated = kwargs.copy()
         updated[CONST.SUPER] = True
         super().__init__(master, topleft, size, **updated)
+        self.background = CONST.DEFAULT.LABEL.bg
+
+        self.pub_arg_dict["Text_render"].append("background")
         self._new_font()
         self._safe_init(**kwargs)
 

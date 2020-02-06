@@ -28,11 +28,11 @@ while Running:
         okno.handle_events(event)
         if event.type == MOUSEMOTION:
             if event.buttons[0]:
-                Label.move_resize(event.pos, 'abs')
+                Label.move_resize(event.pos, -1)
             if event.buttons[1]:
-                Label2.move_resize(event.rel, 'rel')
+                Label2.move_resize(event.rel, 0)
             if event.buttons[2]:
-                Widget.move_resize(event.rel, 'rel')
+                Widget.move_resize(event.rel, 0)
         elif event.type == KEYDOWN:
             if event.key == K_t:
                 Label.set(font_name="trebuchetms")

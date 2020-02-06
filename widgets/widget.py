@@ -297,12 +297,13 @@ class _Master:
 
         return sum(self.pub_arg_dict.values(), [])
 
-    def blit(self, rect=None):
+    def blit(self, rect=None, _update=True):
         """Blits the surface of appearance to the master's surface's subsurface. If rect, actualises only children
         colliding with the rect.
         Can be called by master or child.
         Private."""
 
+        # TODO: in special cases can be self.surface == None while not returning in first condition. In that case the method falls.
         if not self.get_visibility() or not self.on_screen():
             return
         if rect is None:
@@ -315,13 +316,14 @@ class _Master:
         self.surface.set_clip(rect)
         self.surface.blit(self.my_surf, self.topleft)
         self.surface.set_clip(old_clip)
-        self.add_update(rect.move(*self.surface.get_abs_offset()))
+        if _update:
+            self.add_update(rect.move(*self.surface.get_abs_offset()))
         rect.move_ip(*[-a for a in self.topleft])
         for child in self.children:
             if child.master_rect.colliderect(rect):
-                child.blit(rect.move(*[-a for a in child.master_rect.topleft]))
+                child.blit(rect.move(*[-a for a in child.master_rect.topleft]), _update=False)
 
-    def redraw_child_reccurent(self, abs_clip, path):
+    def _redraw_child_reccurent(self, abs_clip, path):
         """Reccurent function used to disappear widget.
         Is called by child or master.
         Private."""
@@ -335,7 +337,8 @@ class _Master:
             if child.master_rect.colliderect(clip) and child != path[0]:
                 child.blit(clip.move(*[-a for a in child.master_rect.topleft]))
             elif child == path[0] and len(path) > 1:
-                child.redraw_child_reccurent(abs_clip, path[1:])
+                # noinspection PyProtectedMember
+                child._redraw_child_reccurent(abs_clip, path[1:])
 
     def set(self, **kwargs):
         """Sets the keyword arguments and actualises the surface of appearance and the image on the screen.
@@ -355,8 +358,6 @@ class _Master:
         """Actualises its image on the screen after setting new values to attributes in most efficient way.
         Private."""
 
-        if old is None:
-            old = dict()
         for name in kwargs.keys():
             if name == 'cursor':
                 self._update_cursor(pg.mouse.get_pos())
@@ -628,6 +629,14 @@ class _Widget(_Master):
 
         self.my_surf = pg.Surface(self.master_rect.size, SRCALPHA)
 
+    def update_appearance(self):
+        old_surf = self.my_surf.copy()
+        self._generate_surf()
+        if old_surf.get_size() != self.my_surf.get_size():
+            self.move_resize(resize=self.my_surf.get_size(), resize_rel=False)
+        elif old_surf != self.my_surf:
+            self.appear()
+
     def _create_subsurface(self):
         """Tries to create a subsurface and actualise topleft.
         Private."""
@@ -663,7 +672,7 @@ class _Widget(_Master):
         """Method used to draw widget on the screen properly.
         Public."""
 
-        if self.connected and self.on_screen() and self.visible:
+        if self.connected and self.on_screen() and self.get_visibility():
             self.get_abs_master_path()[0].blit(self.get_abs_master_rect())
 
     def disappear(self):
@@ -672,33 +681,27 @@ class _Widget(_Master):
 
         if self.connected and self.on_screen():
             path = self.get_abs_master_path()
-            path[0].redraw_child_reccurent(self.get_abs_master_rect().clip(pg.display.get_surface().get_rect()),
-                                           path[1:] + [self])
+            # noinspection PyProtectedMember
+            path[0]._redraw_child_reccurent(self.get_abs_master_rect().clip(pg.display.get_surface().get_rect()),
+                                            path[1:] + [self])
             self.add_update()
 
     def add_update(self, rect=None):
-        """Used to add a child's rectrangle into 'to_update' list of the window.
-        Returns True if succesful, otherwise False.
+        """Used to add a child's rectrangle into the 'to_update' list of the window.
         Can be called by a child.
         Private."""
 
         if not rect:
             rect = self.get_abs_master_rect()
         if self.get_abs_master_rect().colliderect(rect) and self.on_screen(rect):
-            return self.master.add_update(self.get_abs_master_rect().clip(rect))
-        return False
+            self.master.add_update(self.get_abs_master_rect().clip(rect))
 
-    def reconnect(self, rect=None, abs_rect=False):
+    def reconnect(self):
         """Used to actualise the connections of subsurfaces
         (makes self.surface to be a subsurface of self.master.surface if possible).
         Can be called by master.
         Public."""
 
-        if not rect:
-            rect = self.master_rect
-        elif abs_rect:
-            rect.move_ip(*[-i for i in self.master.get_abs_master_rect().topleft])
-        self.master_rect = rect
         self.connected = True
         self._create_subsurface()
         if self not in self.master.children:
@@ -772,9 +775,9 @@ class _Widget(_Master):
             self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_WIDGET_ATTR, name=name, new=value,
                                             old=old[name] if name in old else None))
 
-    def move_resize(self, move=(0, 0), move_level: int = 'rel', resize=(1, 1), resize_rel=True, update_surf=True):
+    def move_resize(self, move=(0, 0), move_level=0, resize=(1, 1), resize_rel=True, update_surf=True):
         """Moves its subsurface inside master's surface to the given position and resizes it.
-        move_level is an integer or one of strings 'abs' and 'rel'.
+        Negative move_level means absolute coordinates, 0 means relative.
         Public."""
 
         size = self.master_rect.size
@@ -782,13 +785,13 @@ class _Widget(_Master):
             resize = [resize[i] * size[i] for i in range(2)]
 
         if self.connected:
-            if move_level == 'rel':
+            if move_level == 0:
                 move = [move[i] + self.master_rect.topleft[i] for i in range(2)]
-            elif move_level == 'abs':
+            elif move_level < 0:
                 move = [move[i] - self.master.get_abs_master_rect().topleft[i] for i in range(2)]
             else:
                 master = self.master
-                for _ in range(move_level):
+                for _ in range(move_level - 1):
                     move = [move[i] - master.master_rect.topleft[i] for i in range(2)]
                     try:
                         master = master.master

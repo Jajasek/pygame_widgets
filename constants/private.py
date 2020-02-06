@@ -1,4 +1,4 @@
-from pygame_widgets.constants.public import THECOLORS, SRCALPHA, button_bg, frame
+from pygame_widgets.constants.public import THECOLORS, SRCALPHA, button_bg, frame, A_TOPLEFT, A_CENTER, A_BOTTOMRIGHT
 from pygame_widgets.auxiliary import cursors
 
 
@@ -10,7 +10,6 @@ class DEFAULT:
         color = THECOLORS['gray90']
 
     class TEXT:
-        bg = THECOLORS['transparent']
         font_color = THECOLORS['black']
         font = 'calibri'
         font_size = 16
@@ -21,8 +20,11 @@ class DEFAULT:
         smooth = True
 
         class Alignment:
-            x = 1
-            y = 1
+            x = A_CENTER
+            y = A_CENTER
+
+    class LABEL:
+        bg = THECOLORS['transparent']
 
     class IMAGE:
         bg = THECOLORS['white']
@@ -38,8 +40,8 @@ class DEFAULT:
         cursor = cursors.textmarker
 
         class Alignment:
-            x = 0
-            y = 1
+            x = A_TOPLEFT
+            y = A_CENTER
 
         class Boundary_space:
             top = 3
@@ -65,3 +67,4 @@ class DEFAULT:
 
 SUPER = '_SUPER'  # kwarg used to detect if the class is initialising as super() or not
 PYGAME_EVENTS = range(1, 18)
+DEBUG = True
