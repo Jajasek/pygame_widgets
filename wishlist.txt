@@ -1,3 +1,5 @@
 Allow multiple window instances, that would not argue, but only one will be displayed.
     It would be possible to switch between already created windows.
 widget.copy()
+widget.set() should take dict with string keys of form "widget.child.subchild.attribute", these should be available from a class structure inside templates.py module
+rename widget.topleft to widget.offset

@@ -347,7 +347,7 @@ class _Master:
         old = dict()
         for name, value in kwargs.items():
             if name in self.kwarg_list():
-                if name in self.pub_arg_dict['special']:
+                if name in self.pub_arg_dict['special']:  # TODO: special attributes could be implemented using property
                     self._set_special(name, value)
                 else:
                     old[name] = getattr(self, name, None)
@@ -568,7 +568,7 @@ class _Widget(_Master):
         self.visible = True
         self.connected = True
         self._child_init = _Caller()
-        self.master_rect = Rect(topleft, size)
+        self.master_rect = Rect(topleft, size)  # TODO: implement getter of master_rect, surface, mysurf etc.
         self._create_subsurface()
         self.master.children.append(self)
         self.my_surf = pg.Surface(size, SRCALPHA)
@@ -643,7 +643,7 @@ class _Widget(_Master):
 
         if self.on_screen():
             rect = self.master.surface.get_rect().clip(
-                self.master_rect.move(*[self.master.topleft[i] for i in range(2)]))
+                self.master_rect.move(*[self.master.topleft[i] for i in range(2)]))  # TODO: This should be *self.master.topleft
             if rect.size != (0, 0):
                 self.surface = self.master.surface.subsurface(rect)
                 self.topleft = [self.master_rect.topleft[i] -

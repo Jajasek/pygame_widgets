@@ -96,7 +96,7 @@ class Label(_Text):
         text = self._font.render(self.text, self.smooth, self.font_color, self.background if not
                                 isinstance(self.background, pg.Surface) and not callable(self.background) and
                                                                                              self.background[3] else None)
-        if callable(self.background):
+        if callable(self.background):  # TODO: this option skips self.auto_res, which is problem in Button
             self.my_surf = self.background(self, text)
             return
         if self.auto_res:

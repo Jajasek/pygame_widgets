@@ -248,7 +248,7 @@ def button_bg(fill, edge, frame_thickness=1):
 
     background = frame(fill, edge, frame_thickness)
 
-    def func(self, text):
+    def func(self, text):  # TODO: with non-center alignment would the text collide with frame
         surf = background(self.master_rect.size)
         dest = (self.alignment_x * (self.master_rect.w - text.get_width()) / 2,
                 self.alignment_y * (self.master_rect.h - text.get_height()) / 2)
@@ -261,6 +261,7 @@ def button_bg(fill, edge, frame_thickness=1):
 def frame(fill, edge, thickness=1):
     """Returns a function, that creates surface of given size, which is filled with fill color and has a frame of
     given thickness and different color."""
+    # TODO: use pygame.draw / remove function
 
     def func(size):
         if size == func.last_size:

@@ -55,4 +55,4 @@ class Image(W._Widget):
         else:
             self.my_surf = pg.Surface(self.master_rect.size, SRCALPHA)
             self.my_surf.fill(self.image)
-        self.my_surf.convert()
+        self.my_surf.convert_alpha()

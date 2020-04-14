@@ -1,5 +1,5 @@
 import pygame_widgets as pw
-from public import *
+from pw.constants import *
 
 
 def zmena_okna(self):
