@@ -1,11 +1,11 @@
-import pygame_widgets
+import pygame_widgets, pathlib
 
 size = width, height = 320, 240
 speed = [2, 2]
 
 window = pygame_widgets.Window(size, bg_color=(0, 0, 0), fps=0)
 
-ball_img = pygame_widgets.pygame.image.load("intro_ball.png")
+ball_img = pygame_widgets.pygame.image.load(f"{pathlib.Path(__file__).parent.absolute()}\\intro_ball.png")
 ball = pygame_widgets.Image(window, auto_res=True, image=ball_img)
 
 while True:
