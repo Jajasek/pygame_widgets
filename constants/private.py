@@ -67,4 +67,4 @@ class DEFAULT:
 
 SUPER = '_SUPER'  # kwarg used to detect if the class is initialising as super() or not
 PYGAME_EVENTS = range(1, 18)
-DEBUG = True
+DEBUG = False

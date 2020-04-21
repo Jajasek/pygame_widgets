@@ -5,6 +5,9 @@ from pygame import Surface
 from pygame.locals import *
 
 
+THECOLORS['transparent'] = (0, 255, 0, 0)
+
+
 # useful constants of pygame.locals which PyCharm doesn't know
 # display flags
 FULLSCREEN = FULLSCREEN
