@@ -1,5 +1,8 @@
 import pygame_widgets, pathlib
 
+if __name__ != '__main__':
+    exit()
+
 size = width, height = 320, 240
 speed = [2, 2]
 

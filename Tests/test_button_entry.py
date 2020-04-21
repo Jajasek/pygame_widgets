@@ -1,6 +1,9 @@
 import pygame_widgets
 from pygame_widgets.constants import *
 
+if __name__ != '__main__':
+    exit()
+
 
 def Zmacknuti(event, okno):
     okno.set(size=okno.attr.size1 if event.button == BUTTON_LEFT else okno.attr.size2)

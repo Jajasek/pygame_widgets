@@ -1,6 +1,10 @@
 import pygame_widgets as pw
 from pygame_widgets.constants.public import *
 
+if __name__ != '__main__':
+    exit()
+
+
 pw.set_mode_init()
 size = 0, 0
 label_x, label_y = label_size = 220, 180

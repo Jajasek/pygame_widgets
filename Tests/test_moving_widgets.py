@@ -6,6 +6,10 @@ from pygame.colordict import THECOLORS
 from pygame.locals import *
 pygame.init()
 
+if __name__ != '__main__':
+    exit()
+
+
 size = (600, 500)
 okno = widget.Window(size, RESIZABLE)
 surf = pygame.Surface(size)

@@ -1,6 +1,9 @@
 import pygame_widgets as pw
 from pw.constants import *
 
+if __name__ != '__main__':
+    exit()
+
 
 def zmena_okna(self):
     global size
