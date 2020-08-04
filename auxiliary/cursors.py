@@ -50,6 +50,9 @@ _hand_strings = ['     XX                 ',
                  '                        ']
 
 
+_invisible_strings = [' ' * 8] * 8
+
+
 def compile(strings, hotspot=(1, 1), black='X', white='.', xor='o'):
     """Creates cursor data needed by cursors.set() from a sequence of same-lenght strings.
     Public."""
@@ -89,4 +92,5 @@ sizer_x = compile(_cursors.sizer_x_strings, (11, 7))
 sizer_y = compile(_cursors.sizer_y_strings, (7, 11))
 sizer_xy = compile(_cursors.sizer_xy_strings, (11, 7))
 hand = compile(_hand_strings, (5, 1))
-none = (None, None, None, None)
+invisible = compile(_invisible_strings)
+hidden = (None, None, None, None)

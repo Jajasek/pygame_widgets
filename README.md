@@ -7,7 +7,7 @@ in Czech is the part of the repozitory (file Docs.pdf). It will be
 translated to English soon. Built on pygame 1.9.4.
 
 ## Installation
-* Install python 3.7.1 or newer
+* Install python 3.7.1 or newer (see https://www.python.org/downloads/)
 * Install pygame, on most systems by `python3 -m pip install -U pygame --user`.
    For further information see
    https://www.pygame.org/wiki/GettingStarted#Pygame%20Installation.

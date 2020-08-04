@@ -46,7 +46,9 @@ class _Master:
 
     next_ID = 0
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        if CONST.SUPER not in kwargs or not kwargs[CONST.SUPER]:
+            raise TypeError("Hidden widget _Master instanced")
         self.ID = _Master.next_ID
         _Master.next_ID += 1
         self.children = list()
@@ -100,7 +102,7 @@ class _Master:
             pass
 
     def _update_cursor(self, mousepos):
-        """This method is called when mouse moves or widget cursor is changed. It checks if the mouse is above
+        """This method is called when mouse moves or widget cursor is changed. It checks whether the mouse is above
         the widget and actualises cursor image.
         Private."""
 
@@ -393,7 +395,9 @@ class Window(_Master):
     """The main master. Causes problems if instanced multiple times."""
 
     def __init__(self, resolution=(0, 0), flags=0, depth=0, **kwargs):
-        super().__init__()
+        updated = kwargs.copy()
+        updated[CONST.SUPER] = True
+        super().__init__(**updated)
         self.add_handler(VIDEORESIZE, self._resize, self_arg=False)
         self.add_handler(QUIT, self.quit, self_arg=False, event_arg=False)
         self.add_handler(KEYDOWN, self._AltF4, self_arg=False)
@@ -580,7 +584,9 @@ class _Widget(_Master):
     Cannot be instanced."""
 
     def __init__(self, master, topleft, size, **kwargs):
-        super().__init__()
+        updated = kwargs.copy()
+        updated[CONST.SUPER] = True
+        super().__init__(**updated)
         self.pub_arg_dict["Widget_attr"] = ["auto_res"]
         self.pub_arg_dict["special"].extend(["visible"])
         self.master = master
@@ -694,6 +700,7 @@ class _Widget(_Master):
 
         if self.connected and self.on_screen() and self.get_visibility():
             self.get_abs_master_path()[0].blit(self.get_abs_master_rect())
+            self._update_cursor(pg.mouse.get_pos())
 
     def disappear(self):
         """Method used to redraw widget by other widgets. It could cause problems if not used carefully.
