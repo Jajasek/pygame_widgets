@@ -93,7 +93,7 @@ class _Text(W._Widget):
                 self._set_font()
             if new or set or render:
                 self.update_appearance()
-            self._set_event(old, **kwargs)
+            self._set_event(old, **kwargs)  # TODO: this is the only usage if _set_event()
 
 
 class Label(_Text):

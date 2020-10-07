@@ -8,6 +8,7 @@ from pygame_widgets.widgets.text import *
 from pygame_widgets.widgets.button import *
 from pygame_widgets.widgets.image import *
 from pygame_widgets.widgets.entry import *
+from pygame_widgets.widgets.gif import *
 from pygame_widgets.auxiliary.exceptions import *
 import pygame_widgets.constants as constants
 import pygame_widgets.auxiliary.cursors as cursors

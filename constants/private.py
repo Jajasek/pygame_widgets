@@ -84,6 +84,11 @@ class DEFAULT:
         class Cursor:
             color = THECOLORS['black']
 
+    class GIF:
+        running = False
+        reversed = False
+        image = None
+
 
 SUPER = '_SUPER'  # kwarg used to detect if the class is initialising as super() or not
 PYGAME_EVENTS = range(1, 18)

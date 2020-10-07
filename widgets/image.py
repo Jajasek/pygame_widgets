@@ -34,7 +34,7 @@ class Image(W._Widget):
         updated = kwargs.copy()
         updated[CONST.SUPER] = True
         super().__init__(master, topleft, size, **updated)
-        self.pub_arg_dict['Image_set'] = ['image']
+        self.pub_arg_dict['Image_appearance'] = ['image']
         self.image = CONST.DEFAULT.IMAGE.bg
         self._safe_init(**kwargs)
 
@@ -46,7 +46,7 @@ class Image(W._Widget):
             super()._set_update(old, **kwargs)
             update = False
             for name in kwargs.keys():
-                if name in self.pub_arg_dict['Image_set']:
+                if name in self.pub_arg_dict['Image_appearance']:
                     update = True
             if update:
                 self.update_appearance()
@@ -58,6 +58,7 @@ class Image(W._Widget):
         if old is None:
             old = dict()
         for name, value in kwargs.items():
+            # noinspection PyArgumentList
             self._post_event(pg.event.Event(PYGAME_WIDGETS, ID=E_IMAGE_APPEARANCE, name=name, new=value,
                                             old=old[name] if name in old else None))
 

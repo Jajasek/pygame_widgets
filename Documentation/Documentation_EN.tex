@@ -1,0 +1,362 @@
+\documentclass[11pt]{article}
+\usepackage[english]{babel}
+\usepackage{listings, a4wide, lipsum, courier, ifthen, array}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{silence}
+\usepackage{hyperref}
+
+
+\WarningFilter[hyperref]{hyperref}{Token not allowed in a PDF string}
+
+
+\definecolor{backcolor}{rgb}{0.9, 0.9, 0.9}
+\definecolor{textcolor}{rgb}{0, 0, 0}
+\definecolor{commentcolor}{rgb}{0, 0.6, 0}
+\definecolor{keywordcolor}{rgb}{0, 0, 0}  %{0.85, 0.3, 0}
+\definecolor{numbercolor}{rgb}{0.5, 0.5, 0.5}
+\definecolor{stringcolor}{rgb}{0.58, 0, 0.82}
+\definecolor{warncolor}{rgb}{1, 0, 0}
+\definecolor{notecolor}{rgb}{0, 0, 0}
+
+
+\makeatletter
+\newcommand{\labelblock}[1]{}
+\newcommand{\toclevel}{section}
+\newlength\normalparindent
+\setlength\normalparindent{\parindent}
+\newlength\tabulator
+\setlength\tabulator{1cm}
+\newenvironment{block}[2][]%
+  {\begin{list}{}%
+      {\renewcommand{\makelabel}{\labelblock}%
+        \setlength{\itemindent}{0pt}%
+        \setlength{\itemsep}{0pt}%
+        \setlength{\leftmargin}{\tabulator}%
+        \setlength{\labelwidth}{0pt}%
+        \listparindent\normalparindent%
+        \setlength{\parsep}{\parskip}%
+        \ifx&#2&%
+          \setlength{\itemindent}{0pt}%
+        \else%
+          \setlength{\itemindent}{-1\tabulator}%
+        \fi}%
+    \bigskip%
+    \ifx&#2&%
+      \item\ignorespaces
+    \else%
+      \phantomsection
+      \ActivateWarningFilters[hyperref]
+      \addcontentsline{toc}{\toclevel}{#2}
+      \DeactivateWarningFilters[hyperref]
+      \ifthenelse{\equal{\toclevel}{section}}%
+      	{\global\renewcommand{\toclevel}{subsection}}%
+      	{\ifthenelse{\equal{\toclevel}{subsection}}%
+      	  {\global\renewcommand{\toclevel}{subsubsection}}%
+      	  {\global\renewcommand{\toclevel}{TODO}}%
+      	}%
+      \ifx&#1&%
+        \item #2 \par\noindent\ignorespaces
+      \else%
+        \item \hypertarget{#1}{#2} \par\noindent\ignorespaces
+      \fi%
+    \fi}%
+  {\end{list}%
+   \ifthenelse{\equal{\toclevel}{TODO}}%
+     {\global\renewcommand{\toclevel}{subsubsection}}%
+     {\ifthenelse{\equal{\toclevel}{subsubsection}}%
+       {\global\renewcommand{\toclevel}{subsection}}%
+       {\global\renewcommand{\toclevel}{section}}%
+     }}
+\makeatother
+
+\newcommand{\bfit}[1]{\textbf{\textit{#1}}\par\medskip\noindent\ignorespaces}
+\newcommand{\warn}[1]{\medskip\noindent{\color{warncolor}{Warning: #1}}}
+\newcommand{\note}[1]{\medskip\noindent{\color{notecolor}{Note: #1}}}
+\newcommand{\hfuzzold}{False}
+\newcommand{\surp}{\global\hfuzz=\maxdimen\par\global\hfuzz=0.1pt}
+\let\f\lstinline
+\newcommand{\enbox}[2][]{
+  \ifx&#1&%
+    #2
+  \else%
+    \hyperlink{#1}{\underline{#2}}%
+  \fi}
+\newcommand{\ebox}[2][]{\colorbox{backcolor}{\textnormal{\enbox[#1]{#2}}}}
+\newcommand{\einbox}[2][]{
+  \ifx&#1&%
+    \underline{\url{#2}}%
+  \else%
+    \href{#1}{\underline{#2}}%
+  \fi}
+\newcommand{\eibox}[2][]{\colorbox{backcolor}{\textnormal{\einbox[#1]{#2}}}}
+\newcommand{\e}{\ebox}  % change to \enbox to remove gray boxes around \lstinline not to have them in toc
+\newcommand{\ei}{\eibox}
+
+%\lstset{backgroundcolor=\color{backcolour}, language=Python, literate={-}{-}1, basicstyle=\ttfamily}
+
+\lstdefinestyle{mystyle}{
+		language=Python,
+    backgroundcolor=\color{backcolor},   
+    commentstyle=\color{commentcolor},
+    keywordstyle=\color{keywordcolor},
+    numberstyle=\color{numbercolor},
+    stringstyle=\color{stringcolor},
+    basicstyle=\ttfamily\small\color{textcolor},
+    breakatwhitespace=false,
+    breaklines=true,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4
+}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=.,
+    urlcolor=.
+}
+
+\title{The documentation of the library \einbox[https://github.com/Jajasek/pygame_widgets]{\f|pygame_widgets|}}
+\author{Jáchym Mierva}
+\date{\today}
+
+
+\begin{document}
+\lstset{basicstyle=\ttfamily}
+\maketitle
+\tableofcontents
+\newpage
+
+\lstset{style=mystyle}
+%\hypersetup{
+%    colorlinks=false,
+%    pdfborderstyle={/S/U/W 1},
+%    linkbordercolor=.
+%}
+
+
+\begin{block}{\e{\f!pygame_widgets!}}
+\bfit{the root directory of the library}
+The root directory (better said the script \e{\f!pygame_widgets\\__init__.py!}) includes the reference to the imported instance of \ei[https://www.pygame.org/]{\f!pygame!}:
+
+\begin{lstlisting}[numbers=none]
+pygame_widgets.pygame
+\end{lstlisting}
+However, it is possible to import \e{\f!pygame!} separately. In that case it is not necessary to call \e{\f!pygame.init()!} as it was done during the \e{\f!import pygame_widgets!} command.
+
+\begin{block}[new_loop]{\e{\f!new_loop(window=None) -> None!}}
+\bfit{announce a new iteration of the mainloop}
+This method contains various things that have to be done during every iteration of the mainloop. Firstly, the event \e{\f!E_LOOP_STARTED!} is published, another task is to handle the delayed functions called with \e[delayed_call]{\f!delayed_call()!}.
+
+In case the optional argument \e{\f!window!} is an instance of \\ \e[Window]{\f!pygame_widgets.Window!} or its subclass, then the content of display is updated using \e[Window.update_display]{\f!window.update_display()!}.
+
+\warn{It is strongly recommended to call \e{\f!new_loop()!} exactly once in every iteration of the mainloop, because the actions described above are important for proper function of \e{\f!pygame_widgets!}.}
+\end{block}
+
+\begin{block}[delayed_call]{\e{\f!delayed_call(func, delay=1, *args, **kwargs) -> None!}}
+\bfit{call a function with a delay}
+This function allows to call \e{\f!func(*args, **kwargs)!} after certain number of mainloop iterations. The number is specified by the argument \e{\f!delay!}. The number of mainloop cycles is determined by the number of calls to \e[new_loop]{\f!new_loop()!}; inside this function is also the call executed.
+\end{block}
+
+\begin{block}[set_mode_init]{\e{\f!set_mode_init() -> None!}}
+\bfit{block widgets to post events}
+This function was implemented after several fails caused by full \einbox[https://www.pygame.org/docs/ref/event.html\#pygame.event.post]{event queue}. When any attribute of any widget is changed by \e[_Master.set]{\f!widget.set()!}, an event is posted. In case lots of widgets are initialized without processing events, the queue can be easily filled. Additionally, these events are often useless. 
+
+Calling this function will cause widgets not to post any events. This is recommended to do in the beginning of the program, right before initialization of widgets. To allow posting events again, use \e[set_mode_mainloop]{\f!set_mode_mainloop()!}.
+\end{block}
+
+\begin{block}[set_mode_mainloop]{\e{\f!set_mode_mainloop() -> None!}}
+\bfit{allow posting events}
+After calling this function widgets will be able to post events again (see \\ \e[set_mode_init]{\f!set_mode_init()!}).
+\end{block}
+
+\begin{block}[get_mode]{\e{\f!get_mode() -> None!}}
+\bfit{returns \e{\f!True!} when widgets are allowed to post events, otherwise \e{\f!False!}.}
+Mode can be triggered using \e[set_mode_mainloop]{\f!set_mode_mainloop()!} and \e[set_mode_init]{\f!set_mode_init()!}.
+\end{block}
+\end{block}
+
+
+
+\begin{block}[_Master]{\e{\f!pygame_widgets.widgets.widget._Master!}}
+\bfit{object, that contains attributes and methods common to all widgets}
+\warn{This object is not meant to be instanced or subclassed. Instancing will raise \e{\f!TypeError!}.}
+
+\begin{block}[_Master.on_screen]{\e{\f!on_screen(rect=None) -> bool!}}
+\bfit{returns \e{\f!True!} if there is image of \e{\f!rect!} on current window, otherwise \e{\f!False!}}
+
+In case no argument is provided, the return value of \\\e{\f!self.get_abs_master_rect()!} is used (this method is implemented in both \e[Window.get_abs_master_rect]{\f!pygame_widgets.Window!} and \e[_Widget.get_abs_master_rect]{\f!pygame_widgets.widgets.widgets._Widgets!}).\surp
+
+\warn{This method contains a bug, in specific cases returns \e{\f!True!} incorrectly.}
+\end{block}
+
+\begin{block}[_Master.kwarg_list]{\e{\f!kwarg_list() -> list!}}
+\bfit{returns list of settable keyword attributes}
+The items of the return list are strings accepted as keys by the method \e[_Master.set]{\f!set()!}.
+\end{block}
+
+\begin{block}[_Master.add_handler]{\e{\f!add_handler(event_type, func, args=None, kwargs=None,!}\\\e{\f!self_arg=True, event_arg=True, delay=0, index=None)!}\\\e{\f! -> None!}}
+\bfit{creates a new handler associated with given event type}
+\e{\f!event_type!} is the type of handled events, \e{\f!func!} is the handling function itself, \e{\f!args!} is an iterable with positional arguments passed to the \e{\f!func!}, \e{\f!kwargs!} is a mapping with keyword arguments. \e{\f!self_arg!} and \e{\f!event_arg!} are boolean arguments. They are used to specify, whether should the reference to the widget, whose handler was activated, and event, which is handled, be passed to the handling function. In such case, these arguments would be inserted to the beginning of the \e{\f!arg!} list. \e{\f!self!} is always first. The parameter \e{\f!delay!} is non-negative integer specifying the number of iterations of the mainloop, that are going to be run through before calling the handler. This is possible to use to manage the order of activated handlers. The parameter \e{\f!index!} has similar purpose, it specifies the index of the new handler in the list of existing handlers (using the method \ei[https://docs.python.org/3/tutorial/datastructures.html\#more-on-lists]{\f!list.insert()!}). In the default case, the handler is appended to the end of the list.\surp
+
+Still, the order control is temporary and it will be probably implemented differently in the future.
+\end{block}
+
+\begin{block}[_Master.remove_handler]{\e{\f!remove_handler(event_type, func, args=None, kwargs=None,!}\\\e{\f!self_arg=True, event_arg=True) -> None!}}
+\bfit{Removes all handlers with specified attributes}
+All arguments must be identical to the arguments used to create the handler (see \e[_Master.add_handler]{\f!_Master.add_handler()!}.
+\end{block}
+
+\begin{block}[_Master.get_handlers]{\e{\f!get_handlers(copy=True) -> dict!}}
+\bfit{returns dictionary with all handlers of the widget}
+The keys of the dictionary are event types and the corresponding values are lists of all handlers, which are (in order) called when handling an event. The handlers are instances of \e[Handler]{\f!pygame_wicgets.handler.Handler!}.
+
+In case \e{\f!copy == False!} the returned dictionary is a reference to the actual dictionary used by the widget. Therefore, user can change it and these changes reflect in the behaviour of the widget. The programmer has absolute control over the order of the handlers, on the other hand he might damage the basic functionality of the widget. This option should therefore be used only by experienced user, who knows, what he is doing.
+
+In the default case the dictionary (including all lists and handlers) is only a copy. It is safe to change it, the changes don't influence the widget behaviour.
+\end{block}
+
+\begin{block}[_Master.add_grab]{\e{\f!add_grab(event_type, child, level=0) -> None!}}
+\bfit{send all events of the type \e{\f!event_type!} only to the widget \e{\f!child!}}
+The use of this method can be explained on an example. Suppose we are trying to implement an \e[Entry]{\f!Entry!}. When an user clicks into it, the \e{\f!entry!} should be the only widget affected by the \e{\f!KEYDOWN!} events. This can be achieved by calling
+
+\begin{lstlisting}[numbers=none]
+entry.master.add_grab(pygame_widgets.constants.KEYDOWN, entry, -1)
+\end{lstlisting}
+The method is then called recursively - the immediate master of the \e{\f!entry!} also locks all \e{\f!KEYDOWN!} events only for itself etc. The integer \e{\f!level!} specifies the depth of the recursion. In case it is a negative number, it goes all the way up to the absolute master widget.
+
+\note{The widgets on the path to the \e{\f!entry!} do not handle the events.}
+\end{block}
+
+\begin{block}[_Master.remove_grab]{\e{\f!remove_grab(event_type, child, level=0) -> None!}}
+\bfit{cancel the effects of \e[_Master.add_grab]{\f!add_grab()!}}
+The parameters have the same meaning as in the \e[_Master.add_grab]{\f!add_grab()!} method.
+\end{block}
+
+\begin{block}[_Master.add_nr_events]{\e{\f!add_nr_events(*args) -> None!}}
+\bfit{add event types which will be ignored by the widget}
+The widget will neither handle the events nor send them to the children. The event types are saved in a \ei[https://docs.python.org/3.8/tutorial/datastructures.html\#sets]{\f!set!}, therefore it is safe to add one event type multiple times.
+\end{block}
+
+\begin{block}[_Master.remove_nr_events]{\e{\f!remove_nr_events(*args) -> None!}}
+\bfit{cancel the effects of \e[_Master.add_nr_events]{\f!add_nr_events()!}}
+It is safe to remove event type which has not been added before.
+\end{block}
+
+\begin{block}[_Master.add_ns_events]{\e{\f!add_ns_events(*args) -> None!}}
+\bfit{add event types which will not be sent to the children}
+Very similar to the \e[_Master.add_nr_events]{\f!add_nr_events()!} method. The only difference is that the events will be handled.
+\end{block}
+
+\begin{block}[_Master.remove_ns_events]{\e{\f!remove_ns_events(*args) -> None!}}
+\bfit{cancel the effects of \e[_Master.add_ns_events]{\f!add_ns_events()!}}
+It is safe to remove event type which has not been added before.
+\end{block}
+
+\begin{block}[_Master.handle_event]{\e{\f!handle_event(event, _filter=True) -> None!}}
+\bfit{handle an event and send it to the children}
+\e{\f!event!} is an instance of \ei[https://www.pygame.org/docs/ref/event.html\#pygame.event.Event]{\f!pygame.event.Event!}. There are 2 main types of events: the ones generated by \e{\f!pygame!} (see the standard event types at \einbox{https://www.pygame.org/docs/ref/event.html}), others are generated by the widgets of \e{\f!pygame_widgets!}. We will not discuss the user-generated events here.
+
+The events generated by widgets are always handled by the specific widget right after their creation (and they are send to the children), only then they are posted to the event queue. This has significant advantage in low latency, however it brings some problems. When the event queue is processed using
+
+\begin{lstlisting}[numbers=none]
+window.handle_events(*pygame_widgets.pygame.event.get())
+\end{lstlisting}
+or any equivalent code, the event propagates through the tree of widgets until it gets to the widget that created it. Then it would be handled twice by this widget and all its children, which is unwanted behaviour.
+
+This problem is solved using signature. The event has an attribute \\\e{\f!event.widget!} which holds the reference to the widget it was created by. Then, any widget never handles event with its own signature.
+
+Passing an argument \e{\f!_filter=False!} disables this filtering, allowing widget handle its own event. This is used internally in the library (specifically when the event is created - it has to be handled), but user should never call the method with non-default \e{\f!_filter!} argument.
+
+\note{The filtering should be implemented differently. There should be method \e{\f!_Master._handle_event()!} which handles any event, and \e{\f!handle_event()!} should be only a wrapper with filtering.}\surp
+\end{block}
+
+\begin{block}[_Master.handle_events]{\e{\f!handle_events(*events, _filter=True) -> None!}}
+\bfit{handle all events and send them to the children}
+This method handles all events one-by-one using \e[_Master.handle_event]{\f!handle_event!}.
+\end{block}
+
+\begin{block}[_Master.blit]{\e{\f!blit(rect=None, _update=True) -> None!}}
+\bfit{redraw part of the display}
+This method uses the method \ei[https://www.pygame.org/docs/ref/surface.html\#pygame.Surface.blit]{\f!pygame.Surface.blit()!}. It blits a part of \e{\f!self.my_surf!} to \e{\f!self.surface!}, ultimately leading to the change on the screen. The blitting area can be determined by the \e{\f!rect!} argument. When not passed, the return value of \e[https://www.pygame.org/docs/ref/surface.html\#pygame.Surface.get_rect]{\f!self.surface.get_rect()!} is used. The coordinates are relative to the topleft of \e{\f!self.master_rect!}.
+
+This method is recursively called in all children colliding with \e{\f!rect!}. For optimization reasons is the \e{\f!_update!} argument set to \e{\f!False!}, although user should never overwrite the default value.
+\end{block}
+\end{block}
+
+
+
+\begin{block}[Window]{\e{\f!pygame_widgets.Window!}}
+\bfit{Widget representing the whole window of the application. The absolute master of all widgets.}
+\begin{lstlisting}[numbers=none]
+Window(size=(0, 0), flags=0, depth=0, **kwargs) -> Window instance
+\end{lstlisting}
+
+The object \e{\f!Window!} is used to control the basic functions of the application. Once an instance is created, the window appears on the screen and it is possible to create another widgets and display them inside. The object also manages event handling process and distributes the events to the other widgets.
+
+The parameter \e{\f!size!} determines the resolution (and therefore the size) of the window. In case one of the dimensions is 0, this dimension is set to the corresponding dimension of the screen resolution. Parameters \e{\f!flags!} and \e{\f!depth!} have the same meaning as the corresponding parameters of \ei[https://www.pygame.org/docs/ref/display.html\#pygame.display.set_mode]{\f!pygame.display.set_mode()!}. It is usually recommended not to set the latter, because \e{\f!pygame!} sets it to the best values for the system. The parameter \e{\f!flags!} adjusts the behaviour of the window.
+
+The keyword arguments are used to set the window right after the initialization. It is meant only as simplification; the two following blocks of code have the exactly same effect:
+
+\begin{lstlisting}
+window = pygame_widgets.Window(**kwargs)
+\end{lstlisting}
+
+\begin{lstlisting}
+window = pygame_widgets.Window()
+window.set(**kwargs)
+\end{lstlisting}
+
+The description of all possible keyword arguments is listed in the documentation of the method \e[Window.set]{\f!Window.set()!}.
+
+This class inherits the class \e[_Master]{\f!_Master!}.
+
+\warn{\e{\f!pygame!} allows creating only one window. In case user attempts to instance the class \e{\f!Window!} multiple times, the application will behave unpredictably.}
+
+\begin{block}[Window.set]{\e{\f!set(**kwargs) -> None!}}
+\bfit{set the attributes of the widget}
+All settable attributes of every widget can be changed using this method. Every widget has its own list of settable attributes, while all widgets inheriting the class \e{\f!Window!} support all arguments \e{\f!Window!} does.
+
+For every attribute set, an event of type \e{\f!E_WINDOW_ATTR!} is published. The event has the following attributes: \e{\f!name!} (string containing the name of the changed attribute), \e{\f!new!} (the new value) and \e{\f!old!} (original value; for some attributes \e{\f!None!}).\\
+
+\noindent\hspace{-6pt}\begin{tabular}{p{3.92cm}p{9cm}}
+\f!cursor! & the default appearance of cursor \\
+\f!fps! & maximum frame rate (uses \ei[https://www.pygame.org/docs/ref/time.html\#pygame.time.Clock]{\f!pygame.time.Clock!}). In case  \e{\f!fps==0!}, frame rate is not limited. \\
+\f!bg_color! & background color \\
+\f!min_size!, \f!max_size! & determines the minimum and maximum size of the application window in case user has the ability to resize it (a flag \e{\f!RESIZABLE!} is enabled) or the program itself tries to change it \\
+\f!title! & sets the title displayed in the heading of the window \\
+\f!icontitle! & the title displayed on the main panel. In case it is set to \e{\f!None!}, the \e{\f!title!} is used. \\
+\f!icon! & the icon displayed on the main panel \\
+\f!size! & changes the resolution (and therefore size) of the window \\
+\end{tabular}
+\end{block}
+
+\begin{block}[Window.quit]{\e{\f!quit(code=0) -> None!}}
+\bfit{quit the application}
+Deinitializes all active widgets and then \e{\f!pygame!}. Then it calls \\\e{\f!sys.exit(code)!}.
+\end{block}
+
+\begin{block}[Window.delete]{\e{\f!delete() -> None!}}
+\bfit{recursively deinitialize all active widgets}
+\end{block}
+
+\begin{block}[Window.update_display]{\e{\f!update_display() -> None!}}
+\bfit{actualise the image on the monitor}
+Draws all changes that happened since the last call on the monitor. It also actualises the clock (see the documentation of \ei[https://www.pygame.org/docs/ref/time.html\#pygame.time.Clock.tick]{\f!pygame.time.Clock.tick()!}).
+
+This method should be called in every cycle of the mainloop exactly once to assure the image on the monitor is up-to-date. In case there is a limit of maximum frame rate, \e{\f!update_display()!} always waits not to exceed it.
+
+During the call of \e[new_loop]{\f!pygame_widgets.new_loop(window)!} with
+
+
+%aktualizuje obraz na monitoru
+%Nakreslí na monitor všechny změny od posledního volání. Zároveň aktualizuje hodiny (viz dokumentaci pygame.time.Clock.tick). Tato metoda by měla být volána v každém cyklu hlavní programové smyčky, aby byly na monitoru zobrazeny aktuální informace. Je-li nastavené omezení snímkové frekvence, update_display() pokaždé počká, aby nebyla překročena.
+%Při volání funkce pygame_widgets.new_loop(window) s platným argumentem window se uvnitř této funkce zavolá window.update_display(). Jelikož je doporučeno zavolat funkci pygame_widgets.new_loop() v každém cyklu hlavní programové smyčky, nemusí uživatel volat update_display() zvlášť.
+
+\end{block}
+
+\end{block}
+\end{document}

@@ -367,14 +367,18 @@ class _Master:
         Public."""
 
         old = dict()
+        kw_list = self.kwarg_list()
+        kwargs_copy = kwargs.copy()
         for name, value in kwargs.items():
-            if name in self.kwarg_list():
+            if name in kw_list:
                 if name in self.pub_arg_dict['special']:  # TODO: special attributes could be implemented using property
                     self._set_special(name, value)
                 else:
                     old[name] = getattr(self, name, None)
                     setattr(self, name, value)
-        self._set_update(old, **kwargs)
+            else:
+                del kwargs_copy[name]
+        self._set_update(old, **kwargs_copy)
 
     def _set_update(self, old=None, **kwargs):
         """Actualises its image on the screen after setting new values to attributes in most efficient way.
@@ -394,7 +398,7 @@ class _Master:
 class Window(_Master):
     """The main master. Causes problems if instanced multiple times."""
 
-    def __init__(self, resolution=(0, 0), flags=0, depth=0, **kwargs):
+    def __init__(self, size=(0, 0), flags=0, depth=0, **kwargs):
         updated = kwargs.copy()
         updated[CONST.SUPER] = True
         super().__init__(**updated)
@@ -405,7 +409,7 @@ class Window(_Master):
         self.max_size = (None, None)
         self.bg_color = CONST.DEFAULT.WINDOW.color
         self.surf_args = (flags | SRCALPHA, depth)
-        self.surface = pg.display.set_mode(resolution, *self.surf_args)
+        self.surface = pg.display.set_mode(size, *self.surf_args)
         self.my_surf = pg.Surface(self.surface.get_size(), SRCALPHA)
         self.my_surf.fill(self.bg_color)
         self.my_surf.convert_alpha()
@@ -655,11 +659,14 @@ class _Widget(_Master):
 
         self.my_surf = pg.Surface(self.master_rect.size, SRCALPHA)
 
-    def update_appearance(self):
+    def update_appearance(self):  # TODO: docs
+        """Generates new surface of appearance and updates the image on screen.
+        Public."""
+
         old_surf = self.my_surf.copy()
         self._generate_surf()
         if old_surf.get_size() != self.my_surf.get_size():
-            self.move_resize(resize=self.my_surf.get_size(), resize_rel=False)
+            self.move_resize(resize=self.my_surf.get_size(), resize_rel=False, update_surf=False)
         elif old_surf != self.my_surf:
             self.appear()
 
@@ -794,7 +801,7 @@ class _Widget(_Master):
 
     def _set_event(self, old=None, **kwargs):
         """Places events on the queue based on changed attributes.
-        Private."""
+        Private."""  # TODO: Overwriting in inheriting classes causes inconsistencies in event IDs
 
         if old is None:
             old = dict()
