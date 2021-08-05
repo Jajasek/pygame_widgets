@@ -2,8 +2,8 @@ import pygame_widgets, pathlib
 
 
 def main():
-    size = width, height = 320, 240
-    speed = [2, 2]
+    size = width, height = 800, 450
+    speed = [1, 1]
 
     window = pygame_widgets.Window(size, bg_color=(0, 0, 0), fps=0)
 
