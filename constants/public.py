@@ -207,7 +207,7 @@ KMOD_MODE = KMOD_MODE
 SRCALPHA = SRCALPHA
 # other references
 Rect = Rect
-color = color
+Color = Color
 
 # mouse event values
 MOTION_LEFT = 0
